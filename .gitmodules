@@ -1,0 +1,3 @@
+[submodule "q-sys-plugin-panasonic-ptz"]
+	path = q-sys-plugin-panasonic-ptz
+	url = https://github.com/q-sys-community/q-sys-plugin-panasonic-ptz/
