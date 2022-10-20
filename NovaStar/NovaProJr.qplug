@@ -333,7 +333,7 @@ PluginInfo = {
             URL.Brightness_Params.Out_Bright = set_brightness_val()
             URL.Base.Query = URL.Brightness_Params
             return URL.Base
-        end
+        end,
 
         normal = function()
             URL.TestParams.ImageCtrl = 0
@@ -440,14 +440,20 @@ PluginInfo = {
     local function bright_up( ctl )
         if ctl.Boolean and Controls.bright.Value < 100 then
             Controls.bright.Value = Controls.bright.Value + inc
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.brightness()
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.brightness()),
+                EventHandler = URL.done
+            })
         end
     end
 
     local function bright_down( ctl )
         if ctl.Boolean and Controls.bright.Value > 0 then
             Controls.bright.Value = Controls.bright.Value - dec
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.brightness())
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.brightness()),
+                EventHandler = URL.done
+            })
         end
     end
 
@@ -461,13 +467,19 @@ PluginInfo = {
 
     Controls["Normal Mode"].EventHandler = function ()
         if Controls["Normal Mode"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.normal())
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.normal()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls.Blackout.EventHandler = function ()
         if Controls["Blackout"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.blackout()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.blackout()),
+                EventHandler = URL.done
+            })
         end
     end
  
@@ -475,49 +487,73 @@ PluginInfo = {
 
     Controls["Test Red"].EventHandler = function ()
         if Controls["Test Red"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.red()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.red()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test Green"].EventHandler = function ()
         if Controls["Test Green"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.green()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.green()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test White"].EventHandler = function ()
         if Controls["Test White"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.white())
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.white()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test Blue"].EventHandler = function ()
         if Controls["Test Blue"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.blue()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.blue()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test Horizontal"].EventHandler = function ()
         if Controls["Test Horizontal"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.horizontal()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.horizontal()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test Vertical"].EventHandler = function ()
         if Controls["Test Vertical"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.vertical()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.vertical()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test Diagonal 1"].EventHandler = function ()
         if Controls["Test Diagonal 1"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.diagonal[1]()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.diagonal[1]()),
+                EventHandler = URL.done
+            })
         end
     end
 
     Controls["Test Diagonal 2"].EventHandler = function ()
         if Controls["Test Diagonal 2"].Boolean then
-            HttpClient.Download(HttpClient.CreateUrl(URL.Choice.diagonal[2]()))
+            HttpClient.Download({
+                Url = HttpClient.CreateUrl(URL.Choice.diagonal[2]()),
+                EventHandler = URL.done
+            })
         end
     end
 
