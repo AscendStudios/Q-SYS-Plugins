@@ -1,0 +1,732 @@
+-- WyreSrom NHD 100 Series Controller
+-- By Casey Compton
+-- July 01 2022
+
+-- Information block for the plugin
+PluginInfo = {
+    Name = "NHD-100-CTL",
+    Version = "1.0",
+    BuildVersion = "0.0.0.1",
+    Id = "NHD100CTL",
+    Author = "Casey Compton",
+    Description = "Plugin for simple routing using wyrestorm 100 devices"  
+  }
+  
+local colors = {
+      dark = {59, 66, 82},
+      light = {229, 233, 240},
+      medium = {129,161,193},
+      accent = {143,188,187},
+      red = {191,97,106},
+      orange = {208,135,112},
+      yellow = {235,203,139},
+      green = {163,190,140},
+      pink = {180,142,173},
+  }
+
+-- Define the color of the plugin object in the design
+function GetColor(props)
+return { 207, 129, 45 }
+end
+  
+-- The name that will initially display when dragged into a design
+function GetPrettyName(props)
+return PluginInfo.Name..  "V " .. PluginInfo.Version
+end
+  
+-- Optional function used if plugin has multiple pages
+PageNames = { "Routing", "Admin", "Config", "About" }  --List the pages within the plugin
+function GetPages(props)
+local pages = {}
+for ix,name in ipairs(PageNames) do
+    table.insert(pages, {name = PageNames[ix]})
+end
+return pages
+end
+  
+-- Define User configurable Properties of the plugin
+function GetProperties()
+local props = {
+    {
+        Name = "Debug Print",
+        Type = "enum",
+        Choices = {"None", "Tx/Rx", "Tx", "Rx", "Function Calls", "All"},
+        Value = "None"
+    },
+    {
+        Name = "Enable Dev",
+        Type = "boolean",
+        Value = false
+    },
+    {
+        Name = "Port",
+        Type = "integer",
+        Min = 0,
+        Max = 65535,
+        Value = 23,
+    },
+    {
+        Name = "Transmitters",
+        Type = "integer",
+        Min = 1,
+        Max = 100,
+        Value = 8,
+    },
+    {
+        Name = "Receivers",
+        Type = "integer",
+        Min = 1,
+        Max = 100,
+        Value = 8,
+    },
+    {
+        Name = "Serial Commands",
+        Type = "integer",
+        Min = 0,
+        Max = 25,
+        Value = 0
+    }
+
+}
+return props
+end
+
+
+-- Optional function to update available properties when properties are altered by the user
+function RectifyProperties(props)
+if props.plugin_show_debug.Value == false then 
+    props["Debug Print"].IsHidden = true 
+end
+if props["Enable Dev"].Value == false then
+    props["Port"].IsHidden = true
+end
+return props
+end
+  
+
+  --[[
+      TODO:
+            Add Custom Prompt
+            Add Submit Button for Custom
+            Add Serial Labels
+            Add Serial Buttons
+  ]]
+-- Defines the Controls used within the plugin
+function GetControls(props)
+    local ctrls = {
+        -- System Config -- 
+        {
+            Name = "IpAddress",
+            ControlType = "Text",
+            Count = 1,
+            PinStyle = "Both",
+            UserPin = true,
+        },
+        {
+            Name = "Connect",
+            ControlType = "Button",
+            ButtonType = "Toggle",
+            PinStyle = "Both",
+            UserPin = true
+        },
+        {
+            Name = "Online",
+            ControlType = "Indicator",
+            IndicatorType = "Led",
+            PinStyle = "Output",
+            Count = 1,
+            UserPin = true
+        },
+        {
+            Name = "ConnectionState",
+            ControlType = "Indicator",
+            IndicatorType = "Status",
+            PinStyle = "Output",
+            UserPin = true
+        }
+
+    }
+    -- Controls --
+
+    for i = 1, props.Transmitters.Value do
+        table.insert(
+            ctrls,
+            {
+                Name = "TX_Btn_"..i,
+                ControlType = "Button",
+                ButtonType = "Toggle",
+                PinStyle = "Both",
+                UserPin = true,
+            }
+        )
+        table.insert(
+            ctrls,
+            {
+                Name = "TX_label_"..i,
+                ControlType = "Text",
+                PinStyle = "Input",
+                UserPin = true,
+            }
+        )
+    end
+
+    for i = 1, props.Receivers.Value do
+        table.insert(
+            ctrls,
+            {
+                Name = "RX_Btn_"..i,
+                ControlType = "Button",
+                ButtonType = "Toggle",
+                PinStyle = "Both",
+                UserPin = true,
+            }
+        )
+
+        table.insert(
+            ctrls,
+            {
+                Name = "RX_label_"..i,
+                ControlType = "Text",
+                PinStyle = "Input",
+                UserPin = true,
+            }
+        )
+    end
+
+    table.insert(
+        ctrls,
+        {
+            Name = "RX_All",
+            ControlType = "Button",
+            ButtonType = "Toggle",
+            PinStyle = "Both",
+            UserPin = true
+        }
+    )
+
+    return ctrls
+end
+  
+--Layout of controls and graphics for the plugin UI to display
+function GetControlLayout(props)
+local layout, graphics = {}, {}
+local input_count = props.Transmitters.Value
+local output_count = props.Receivers.Value
+
+local title_size = {212, 50}
+local btn_size = {50, 25}
+local label_size = {125, 25}
+local font_size = 16
+
+local bottom
+if input_count > output_count then 
+    bottom = input_count
+else
+    bottom = output_count + 1
+end
+
+local CurrentPage = PageNames[props["page_index"].Value]
+
+if CurrentPage == "Routing" then
+
+    graphics = {
+        {
+            Type = "Groupbox",
+            Fill = colors.dark,
+            StrokeColor = colors.accent,
+            Color = colors.accent,
+            Position = {25, 25},
+            Size = {250, props.Transmitters.Value * 25 + 75}
+        },
+        {
+            Type = "Header",
+            Text = "Transmitters",
+            HTextAlign = "Center",
+            Color = colors.accent,
+            FontSize = font_size,
+            Position = {50, 25},
+            Size = title_size,
+        },
+        {
+            Type = "Groupbox",
+            Fill = colors.dark,
+            StrokeColor = colors.accent,
+            Color = colors.accent,
+            Position = {300, 25},
+            Size = {250, (props.Receivers.Value + 1) * 25 + 75}
+        },
+        {
+            Type = "Header",
+            Text = "Receivers",
+            HTextAlign = "Center",
+            Color = colors.accent,
+            FontSize = font_size,
+            Position = {312, 25},
+            Size = title_size,
+        },
+    }
+
+    for i=1, input_count do
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = tostring(i),
+                HTextAlign = "Center",
+                FontSize = font_size,
+                Color = colors.accent,
+                Size = {25,25},
+                Position = {50, 25*i +50}
+            }
+        )
+    end
+
+    for i=1, output_count do
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = tostring(i),
+                HTextAlign = "Center",
+                FontSize = font_size,
+                Color = colors.accent,
+                Size = {25,25},
+                Position = {312, 25*i +50}
+            }
+        )
+    end
+
+    table.insert(
+        graphics,
+        {
+            Type = "Text",
+            Text = "All Receivers",
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = label_size,
+            Position = {337, 25*(output_count + 1) +50} 
+        }
+    )
+
+    for i=1, input_count do
+        layout["TX_label_"..i] = {
+            PrettyName = "Transmiter "..i.. "~Name",
+            Style = "Text",
+            Color = colors.green,
+            Size = label_size,
+            Position = {75, 25*i + 50},
+            Margin = 2, 
+        }
+        layout["TX_Btn_"..i] = {
+            PrettyName = "Transmiter "..i.. "~Select",
+            Style = "Button",
+            ButtonType = "Toggle",
+            Color = colors.accent,
+            FontColor = colors.light,
+            Size = btn_size,
+            Position = {212, 25*i + 50},
+            Margin = 2, 
+        }
+    end
+
+    for i=1, output_count do
+        layout["RX_label_"..i] = {
+            PrettyName = "Receiver "..i.. "~Name",
+            Style = "Text",
+            Color = colors.orange,
+            Size = label_size,
+            Position = {337, 25*i + 50},
+            Margin = 2, 
+        }
+        layout["RX_Btn_"..i] = {
+            PrettyName = "Receiver "..i.. "~Select",
+            Style = "Button",
+            ButtonType = "Toggle",
+            Color = colors.accent,
+            FontColor = colors.light,
+            Size = btn_size,
+            Position = {475, 25*i + 50},
+            Margin = 2, 
+        }
+        layout["RX_All"] = {
+            PrettyName = "Receiver All~Select",
+            Style = "Button",
+            ButtonType = "Toggle",
+            Color = colors.accent,
+            FontColor = colors.light,
+            Size = btn_size,
+            Position = {475, 25*(output_count + 1) + 50},
+            Margin = 2, 
+        }
+    end
+
+    layout["ConnectionState"] = {
+        PrettyName = "System~Online",
+        Style = "Indicator",
+        FontSize = font_size,
+        Position = {25, bottom*25 + 125},
+        Size = {525,50}
+    }
+
+elseif CurrentPage == "Admin" then
+    print("Admin Page")
+elseif CurrentPage == "Config" then
+    graphics = {
+        {
+            Type = "Groupbox",
+            Fill = colors.dark,
+            StrokeColor = colors.accent,
+            Color = colors.accent,
+            Position = {25, 25},
+            Size = {262, 287}
+        },
+        {
+            Type = "Header",
+            Text = "Configuration",
+            HTextAlign = "Center",
+            Color = colors.accent,
+            FontSize = font_size,
+            Position = {50, 25},
+            Size = title_size,
+        },
+    }
+    layout["IpAddress"] = {
+        PrettyName = "System~IpAddress",
+        Style = "Textbox",
+        Position = {50, 75},
+        Size = title_size,
+        FontSize = font_size,
+        Color = colors.medium,
+        FontColor = colors.light,
+    }
+    layout["ConnectionState"] = {
+        PrettyName = "System~Online",
+        Style = "Indicator",
+        FontSize = font_size,
+        Position = {50, 137},
+        Size = title_size
+    }
+    table.insert(
+        graphics,
+        {
+            Type = "Header",
+            Text = "Connect",
+            Size = title_size,
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Position = {50, 187},
+            Color = colors.accent
+        }
+    )
+    layout["Connect"] = {
+        PrettyName = "System~Connect",
+        Style = "Button",
+        ButtonType = "Toggle",
+        Color = colors.accent,
+        FontColor = colors.light,
+        Size = title_size,
+        Position = {50, 237},
+    }
+elseif CurrentPage == "About" then
+    graphics = {
+        {
+            Type = "Header",
+            Text = "About",
+            Size = title_size,
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Position = {50,5},
+            Color = colors.medium
+        },
+        {
+            Type = "Textbox",
+            Text = "Name",
+            Size = {75, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {50, 50},
+            Color = colors.medium
+        },
+        {
+            Type = "Textbox",
+            Text = "Version",
+            Size = {75, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {50, 75},
+            Color = colors.medium
+        },
+        {
+            Type = "Textbox",
+            Text = "Build",
+            Size = {75, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {50, 100},
+            Color = colors.medium
+        },
+        {
+            Type = "Textbox",
+            Text = "Author",
+            Size = {75, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {50, 125},
+            Color = colors.medium
+        },
+        {
+            Type = "Textbox",
+            Text = "Description",
+            Size = {75, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {50, 150},
+            Color = colors.medium
+        },
+        {
+            Type = "Textbox",
+            Text = PluginInfo.Name,
+            Size = {200, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {125, 50},
+            Color = colors.dark
+        },
+        {
+            Type = "Textbox",
+            Text = PluginInfo.Version,
+            Size = {200, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {125, 75},
+            Color = colors.dark
+        },
+        {
+            Type = "Textbox",
+            Text = PluginInfo.BuildVersion,
+            Size = {200, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {125, 100},
+            Color = colors.dark
+        },
+        {
+            Type = "Textbox",
+            Text = PluginInfo.Author,
+            Size = {200, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {125, 125},
+            Color = colors.dark
+        },
+        {
+            Type = "Textbox",
+            Text = PluginInfo.Description,
+            Size = {200, 25},
+            VTextAlign = "Top",
+            HTextAlign = "Left",
+            Position =  {125, 150},
+            Color = colors.dark
+        },
+
+        -- TODO: Add an logo image
+            
+    }
+end
+return layout, graphics
+end
+
+----------------------
+-- HELPER FUNCTINOS --
+----------------------
+local Utilities = {}
+function Utilities.exclude( ctl, ctl_table )
+    if ctl.Boolean then
+        for i, c in pairs( ctl_table ) do
+        if c ~= ctl then c.Boolean = false end
+        end
+    end
+end
+
+-- Adding a return on index as an option to grab --
+function table.contains(self, element, ...)
+    for index, value in pairs(self) do
+      if ... then value = value[...] end
+      if value == element then
+        return true, index
+      end
+    end
+    return false
+end
+
+
+
+--Start event based logic
+if Controls then
+
+    local input_count = Properties["Transmitters"].Value
+    local output_count = Properties["Receivers"].Value
+    
+    local NHD_CTL = {
+        ip = function() return Controls.IpAddress.String end,
+        port = Properties["Port"].Value,
+    }
+    local conn = TcpSocket.New()
+    conn.ReadTimeout = 0
+    conn.WriteTimeout = 0
+    conn.ReconnectTimeout = 5
+    
+    --Build Button And Label Tables
+    Controls.TX_Buttons, Controls.RX_Buttons  = {}, {}
+    Controls.TX_Labels, Controls.RX_Labels = {}, {}
+
+    local function build_tables()
+
+        for i=1, output_count do
+            table.insert(
+                Controls.RX_Buttons,
+                Controls["RX_Btn_"..i]
+            )
+        end
+
+        for i=1, input_count do
+            table.insert(
+                Controls.TX_Buttons,
+                Controls["TX_Btn_"..i]
+            )
+        end
+
+        for i=1, input_count do
+            table.insert(
+                Controls.TX_Labels,
+                Controls["TX_label_"..i]
+            )
+        end
+
+        for i=1, output_count do
+            table.insert(
+                Controls.RX_Labels,
+                Controls["RX_label_"..i]
+            )
+        end
+    end
+
+    build_tables()
+
+    --[[
+        BUILD TCP CONNECTIONS
+    --]]
+
+    local function connect_to_sock(ip, port)  --Tries to connect the socket, but checks to see if IP or port are blank
+        if ip ~='' and port ~='' then
+          conn:Connect(ip, tonumber(port))
+        elseif ip =='' then
+          print("Please input an IP address")
+        elseif port == '' then
+          print("Please input a port number")
+        else
+          print("No sock info found") -- Should never happen
+        end
+    end
+
+    local connection_init = function() -- initializes connection and runs the connect_to_sock function
+        if Controls.Connect.Boolean then
+            Controls.Connect.Legend = "Close Connection"
+            print("\nOpening a connection...")
+            connect_to_sock(NHD_CTL.ip(), NHD_CTL.port)
+            Controls.ConnectionState.String = "Initializing - Connection..."
+        else
+            Controls.Connect.Legend = "Open Connection"
+            print("\nClosing connection...")
+            conn:Disconnect()
+            Controls.ConnectionState.String = "Not Present - Closed by user"
+            Controls.ConnectionState.Color = 'LightGray'
+          
+        end
+    end
+
+
+        -- Setup Utility Callbacks as required
+    conn.Connected = function(conn)
+        print("Connected")
+        Controls.ConnectionState.String = "TCP socket is Connected"
+        Controls["Online"].Boolean = true
+    end
+    conn.Reconnect = function(conn)
+        Controls.ConnectionState.String = "TCP socket is Reconnecting"
+        Controls.ConnectionState.Color = "Blue"
+    end
+    conn.Closed = function(conn)
+        Controls.ConnectionState.String = "TCP socket was closed by the remote end"
+    end
+    conn.Error = function(conn, err)
+        Controls.ConnectionState.String ="TCP socket had an error :: ".. err
+        Controls.ConnectionState.Color = "Red"
+    end
+    conn.Timeout = function(conn, err)
+        Controls.ConnectionState.String = "TCP socket had an timeout :: ".. err
+    end
+
+     -- Data Handling --
+    conn.Data = function()
+        local message_line = conn:ReadLine(TcpSocket.EOL.Any)
+        local message_body = ''
+        while (message_line ~= nil) do -- While there is data, append each line to message body
+        message_body = message_body..'\n'..message_line
+        message_line = conn:ReadLine(TcpSocket.EOL.Any)
+        end
+        print(message_body)
+        return message_body
+    end
+
+    local function send_route()
+
+        if conn.IsConnected then
+            local input_index = table.contains(Controls.TX_Labels, true)[2]
+            local input_device = Controls.TX_Labels[input_index]
+            local output_device
+
+            for index, ctl in pairs(Controls.RX_Buttons) do
+                if ctl.Boolean then
+                    output_device = Controls.RX_Labels[index]
+                    --send TCP command
+                    conn:Write("matrix set ".. input_device .. " " .. output_device .." \r\n")
+                end
+            end
+            --clear table
+        else
+            print("Not Connected")
+            return
+        end
+    end
+
+
+
+    -- EVENTHANDLERS --
+
+    Controls.Connect.EventHandler = connection_init
+
+    for index, ctl in ipairs(Controls.TX_Buttons) do
+        ctl.EventHandler = function()
+            Utilities.exclude(ctl, Controls.TX_Buttons)
+            if ctl.Boolean and table.contains(Controls.RX_Buttons, true) then
+                send_route()
+            end
+        end
+    end
+
+    for index, ctl in ipairs(Controls.RX_Buttons) do
+        ctl.EventHandler = function()
+            if ctl.Boolean and table.contains(Controls.TX_Buttons, true) then
+                send_route()
+            end
+        end
+    end
+
+    
+    
+
+
+
+end
