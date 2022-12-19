@@ -1,0 +1,749 @@
+-- Page Navigation Plugin
+-- By Casey Compton
+-- December 02 2022
+
+
+-- Information block for the plugin
+-- Information block for the plugin
+PluginInfo = {
+  Name = "Page Navigation",
+  Version = "1.0",
+  BuildVersion = "0.0.0.82",
+  Id = "PageNavigation",
+  Author = "Casey Compton",
+  Description = "Plugin for full page navigation within Q-SYS control devices"
+}
+
+local colors = {
+  dark = {59, 66, 82},
+  light = {229, 233, 240},
+  medium = {129,161,193},
+  accent = {143,188,187},
+  red = {191,97,106},
+  orange = {208,135,112},
+  yellow = {235,203,139},
+  green = {163,190,140},
+  pink = {180,142,173},
+}
+
+local fonts = {
+  title = 24,
+  normal = 16,
+  small = 12,
+}
+
+-- Define the color of the plugin object in the design
+function GetColor(props)
+  return { 50, 82, 123 }
+end
+
+-- The name that will initially display when dragged into a design
+function GetPrettyName(props)
+  return "Page Navigation, V " .. PluginInfo.Version
+end
+
+-- Optional function used if plugin has multiple pages
+PageNames = { "Control", "Passcode", "Configuration" }  --List the pages within the plugin
+function GetPages(props)
+  local pages = {}
+  -- For Each of the pages
+  for ix in ipairs(PageNames) do
+    table.insert(pages, {name = PageNames[ix]})
+  end
+  return pages
+end
+
+-- Define User configurable Properties of the plugin
+function GetProperties()
+  local props = {
+    {
+        Name = "Debug Print",
+        Type = "enum",
+        Choices = {"None", "Tx/Rx", "Tx", "Rx", "Function Calls", "All"},
+        Value = "None"
+    },
+    {
+        Name = "Page Buttons",
+        Type = "integer",
+        Min = 0,
+        Max = 1000,
+        Value = 1,
+    },
+    {
+        Name = "Defined Pass Codes",
+        Type = "integer",
+        Min = 0,
+        Max = 100,
+        Value = 1,
+    },
+    {
+      Name = "Admin Pin",
+      Type = "string",
+    }
+  }
+  return props
+end
+
+
+-- Optional function to update available properties when properties are altered by the user
+function RectifyProperties(props)
+  if props.plugin_show_debug.Value == false then 
+    props["Debug Print"].IsHidden = true 
+  end
+  return props
+end
+
+
+-- Defines the Controls used within the plugin
+function GetControls(props)
+  local ctrls = {}
+  -- table.insert(ctrls, {
+  --   Name = "SendButton",
+  --   ControlType = "Button",
+  --   ButtonType = "Momentary",
+  --   Count = 1,
+  --   UserPin = true,
+  --   PinStyle = "Input",
+  --   Icon = "Power"
+  -- })
+  
+  --------------------------------------------------------
+  -- Navigation
+  --------------------------------------------------------
+  
+  for _, name in ipairs{"panelSelection", "pageSelection", "uciSelection"} do
+    table.insert(ctrls, {
+        Name = name,
+        ControlType = "Text",
+        UserPin = true,
+        PinStyle = "Both",
+    })
+  end
+  
+  
+  table.insert(ctrls, {
+      Name = "pageButton",
+      ControlType = "Button",
+      ButtonType = "Toggle",
+      Count = props["Page Buttons"].Value,
+      PinStyle = "Both",
+      UserPin = true
+  })
+  
+  table.insert(ctrls, {
+      Name = "pageLabel",
+      ControlType = "Text",
+      Count = props["Page Buttons"].Value
+  })
+  
+  --------------------------------------------------------
+  -- Pin Code Controls
+  --------------------------------------------------------
+  
+  table.insert(ctrls, {
+      Name = "pinCode",
+      ControlType = "Text",
+      Count = props["Defined Pass Codes"].Value,
+  })
+  
+  table.insert(ctrls, {
+      Name = "pinEnable",
+      ControlType = "Button",
+      ButtonType = "Toggle",
+      Count = props["Defined Pass Codes"].Value,
+  
+  })
+  
+  table.insert(ctrls, {
+      Name = "adminLandingPage",
+      ControlType = "Text",
+  })
+  
+  table.insert(ctrls, {
+      Name = "pinLandingPage",
+      ControlType = "Text",
+      Count = props["Defined Pass Codes"].Value
+  })
+  
+  table.insert(ctrls, {
+      Name = "numPad",
+      ControlType = "Button",
+      ButtonType = "Momentary",
+      Count = 10
+  })
+  
+  
+  for _, name in ipairs({"clear", "back", "enter"}) do
+      table.insert(ctrls, {
+          Name = name,
+          ControlType = "Button",
+          ButtonType = "Momentary",
+      })
+  end
+  
+  table.insert(ctrls, {
+      Name = "pinDisplay",
+      ControlType = "Text",
+  })
+  return ctrls
+end
+
+--Layout of controls and graphics for the plugin UI to display
+function GetControlLayout(props)
+  local layout = {}
+  local graphics = {}
+  -- table.insert(graphics,{
+  --   Type = "GroupBox",
+  --   Text = "Control",
+  --   Fill = {200,200,200},
+  --   StrokeWidth = 1,
+  --   Position = {5,5},
+  --   Size = {200,100}
+  -- })
+  -- table.insert(graphics,{
+  --   Type = "Text",
+  --   Text = "Say Hello:",
+  --   Position = {10,42},
+  --   Size = {90,16},
+  --   FontSize = 14,
+  --   HTextAlign = "Right"
+  -- })
+  -- layout["SendButton"] = {
+  --   PrettyName = "Buttons~Send The Command",
+  --   Style = "Button",
+  --   Position = {105,42},
+  --   Size = {50,16},
+  --   Color = {0,0,0}
+  -- }
+  
+  
+  local CurrentPage = PageNames[props["page_index"].Value]
+  local w, h, tol = 150, 50, 25
+  local btn_w, btn_h = w/2, h/2
+  local row = 1
+  local col = 1
+  
+  ---------------------------------------------------------
+  -- Control Page
+  ---------------------------------------------------------
+  if CurrentPage == "Control" then
+  
+      table.insert(graphics,
+      {
+          Type = "Header",
+          Text = "Page Selection",
+          Position = { tol, tol },
+          Size = { w, h },
+          FontSize = fonts.small
+        })
+  
+      --Selection Box--
+      layout.pageSelection = {
+          PrettyName = "Page Selection",
+          Style = "ComboBox",
+          Position = { tol, tol+h},
+          Size = { w, h },
+          FontSize = fonts.small
+        }
+  
+      --Header--
+      table.insert(graphics,
+      {
+          Type = "Header",
+          Text = "Page Buttons",
+          Position = { tol, h*2+tol},
+          Size = { w, h },
+          FontSize = fonts.small
+        })
+      
+      --Init Layout for buttons and labels
+      layout["pageButton"] = {
+      Style = "Button",
+      ButtonType = "Toggle",
+      Size = { btn_w/2, btn_h },
+      Position = { tol, (h*3) + (btn_h) }
+      }
+  
+      layout["pageLabel"] = {
+      Style = "ComboBox",
+      Margin = 2,
+      Size = { btn_w + btn_w/2, btn_h },
+      Position = { tol + btn_w - (btn_w/2), (h*3) + ( btn_h) },
+      }
+  
+      -- Each Button and Label layout
+      for index=1, props["Page Buttons"].Value do
+          layout["pageButton "..index] = {
+              PrettyName = "Page Button~"..index,
+              Size = { btn_w/2, btn_h },
+              Position = { tol, (h*3) + (index * btn_h) }
+          }
+          layout["pageLabel "..index] = {
+              Style = "ComboBox",
+              Size = { btn_w + btn_w/2, btn_h },
+              Position = { tol + btn_w - (btn_w/2), (h*3) + (index * btn_h) },
+          }
+      end
+  ------------------------------------------------------------
+  ---------------------------PASSCODE-------------------------
+  ------------------------------------------------------------
+  elseif CurrentPage == "Passcode" then
+  
+      --init button layout
+      layout["numPad"] = {
+          PrettyName = "Number Pad",
+          Style = "Button",
+          ButtonType = "Momentary",
+          Size = {h, h},
+          Position = {tol, tol + h}
+      }
+  
+      for i=1, 10 do
+          if i == 10 then
+              row, col = 4, 2
+          elseif i < 4 then
+              row, col = 1, i
+          elseif i < 7 then
+              row, col = 2, i-3
+          else
+              row , col = 3, i-6
+          end
+          layout["numPad "..i] = {
+              PrettyName = "Num Pad "..i,
+              Size = {h, h},
+              Position = {tol + col*h-h, tol + row*h}
+          }
+      end
+  
+    layout["clear"] = {
+        PrettyName = "Clear",
+        Style = "Button",
+        ButtonType = "Momentary",
+        Size = {h, h},
+        Position = {tol, tol + 4*h}
+    }
+    layout["back"] = {
+        PrettyName = "Back",
+        Style = "Button",
+        ButtonType = "Momentary",
+        Size = {h, h},
+        Position = {tol + 3*h-h, tol + 4*h}
+    }
+    layout["enter"] = {
+        PrettyName = "Enter",
+        Style = "Button",
+        ButtonType = "Momentary",
+        Size = {w, h},
+        Position = {tol, tol + 5*h}
+    }
+    layout["pinDisplay"] = {
+        PrettyName = "Pin Display",
+        Style = "Text",
+        Margin = 2,
+        Size = {w, h},
+        Position = {tol, tol}
+    }
+  
+  ---------------------------------------------------------------
+  -------------------------CONFIGURATION-------------------------
+  ---------------------------------------------------------
+  
+  elseif CurrentPage == "Configuration" then
+  
+      w = w + btn_h
+  
+      for index, name in ipairs({"Panel Selection", "UCI Selecion"}) do
+          table.insert(graphics,
+              {
+                  Type = "Text",
+                  Text = name,
+                  Position = {tol+w*index - w, tol},
+                  Size = {w,h},
+                  FontSize = 14,
+                  HTextAlign = "Left"
+              })
+  
+      layout.panelSelection = {
+          PrettyName = "Panel Selection",
+          Style = "ComboBox",
+          Position = {tol, tol+h},
+          Size = {w, h},
+          FontSize = 12,
+          Margin = 2
+      }
+  
+      layout.uciSelection = {
+          PrettyName = "UCI Selection",
+          Style = "ComboBox",
+          Position = {tol+w, tol+h},
+          Size = {w, h},
+          FontSize = 12,
+          Margin = 2
+      }
+  
+      table.insert(graphics, {
+          Type = "Header",
+          Text = "Pin Code Configuration",
+          Position = {tol, tol+(h*3)},
+          Size = {w*2, h},
+          FontSize = fonts.normal,
+          Margin = 2,
+      })
+  
+      table.insert(graphics, {
+          Type = "Text",
+          Text = "Admin Page",
+          Position = {tol, tol+(h*4)},
+          Size = {w-btn_h, h},
+          FontSize = fonts.small,
+          Margin = 2,
+          HTextAlign = "Left"
+      })
+  
+      layout.adminLandingPage = {
+          PrettyName = "Admin Landing Page",
+          Style = "ComboBox",
+          Position = {tol, tol+(h*5)},
+          Size = {w-btn_h, btn_h},
+          FontSize = fonts.small,
+          Margin = 2
+      }
+  
+      table.insert(graphics, {
+        Type = "Text",
+        Text = "Pin",
+        Position = {tol+w + btn_h, tol+(h*4)},
+        Size = {btn_w, h},
+        FontSize = fonts.small,
+        Margin = 2,
+        HTextAlign = "Left"
+        })
+  
+      table.insert(graphics, {
+      Type = "Text",
+      Text = "Page",
+      Position = {tol+w + btn_h+btn_w, tol+(h*4)},
+      Size = {btn_w, h},
+      FontSize = fonts.small,
+      Margin = 2,
+      HTextAlign = "Left"
+      })
+  
+      layout["pinEnable"] = {
+      PrettyName = "Pin Enable",
+      Style = "Button",
+      ButtonType = "Toggle",
+      Size = {btn_h, btn_h},
+      Position = { tol+w, tol+(h*5)}
+      }
+  
+      layout["pinCode"] = {
+      PrettyName = "Pin Codes",
+      Style = "Text",
+      Size = {btn_w, btn_h},
+      Position = { (tol+w)+btn_h, tol+(h*5)},
+      Margin = 2
+      }
+  
+      layout["pinLandingPage"] = {
+      PrettyName = "Custom Landing Page",
+      Style = "ComboBox",
+      Size = {btn_w, btn_h},
+      Position = {(tol+w)+btn_h+btn_w, tol+(h*5)},
+      Margin = 2
+      }
+  
+  
+        for i=1, props["Defined Pass Codes"].Value do
+          layout["pinEnable "..i] = {
+              PrettyName = "Pin Enable "..i,
+              Size = {btn_h, btn_h},
+              Position = {tol+w, tol+(h*5)+btn_h*(i-1)}
+          }
+  
+          layout["pinCode "..i] = {
+              PrettyName = "Pin Code "..i,
+              Size = {btn_w, btn_h},
+              Position = { (tol+w)+btn_h, tol+(h*5)+btn_h*(i-1)},
+              Margin = 2,
+          }
+          layout["pinLandingPage "..i] = {
+              PrettyName = "Custom Landing Page "..i,
+              Size = {btn_w, btn_h},
+              Position = {(tol+w)+btn_h+btn_w, tol+(h*5)+btn_h*(i-1)},
+              Margin = 2
+          }
+        end
+    end
+  end
+  return layout, graphics
+end
+
+--Start event based logic
+if Controls then
+  --[[ LIST OF CONTROLS:
+  
+      "panelSelection",
+      "pageSelection",
+      "uciSelection",
+      "pageButton",
+      "pageLabel",
+      "pinCode",
+      pinLandingPage,
+      adminLandingPage,
+      "pinEnable",
+      "numPad",
+      "clear",
+      "enter",
+      "back",
+      "pinDisplay"
+  
+  ]]
+  
+    --[[
+    
+    Advanced Table functions that are not implemented in LUA
+    
+      To use:
+        require("Advanced_Tables")
+        Then call as expeted - table.reverse(tbl)
+    
+    --]]
+    
+    local table = table
+    
+    function table.is_empty(self)
+      return #self == 0
+    end
+    
+    -- Adding a return on index as an option to grab --
+    function table.contains(self, element, ...)
+      for index, value in pairs(self) do
+        if ... then value = value[...] end
+        if value == element then
+          return true, index
+        end
+      end
+      return false, nil
+    end
+    
+    function table.reverse(self)
+      for i=1, math.floor(#self / 2) do
+        self[i], self[#self - i + 1] = self[#self - i + 1], self[i]
+      end
+    end
+    
+    function table.print(self)
+      local rj = require "rapidjson"
+      print(rj.encode(self, {pretty=true}))
+    end
+    
+    function table.keys(self)
+      local keyset={}
+      for key in pairs(self) do
+        table.insert(keyset, key)
+      end
+      return keyset
+    end
+    
+    function table.values(self)
+      local valset = {}
+      for i, v in pairs(self) do
+        valset[v] = i
+      end
+      return valset
+    end
+    
+    function table.test(self, func, ...)
+      --[[
+      This function will test if each item in a table return true given
+      the provided condition. The condition should be given as a function
+      that will return a boolean value. The function's first parameter
+      must be the table variable. afterwards, additional arguments can be
+      provided.
+      --]]
+      local counter = 0
+      for key, value in pairs(self) do
+        if func(value, ...) then
+          counter = counter + 1
+        else
+          break
+        end
+      end
+      return counter == #self
+    end
+    
+    -- Function to count elements in a table.
+    -- Default uses values, but keys can be used by setting keys = true
+    function table.count(self, element, keys)
+      local count = 0
+      for idx, item in pairs(self) do
+        if keys then item = idx end
+        if item == element then count = count + 1 end
+      end
+      return count
+    end
+    
+    
+  
+  
+  ------------------------------------------
+  -- GLOBALS
+  ------------------------------------------
+  local PIN = ''
+  local CODES = {props["Admin Pin"]}
+  local inventory = {
+      controlDevices = {  -- List of possible invetory items that might have a uci attached.
+          "touch_screen_status",
+          "uci_viewer",
+      }
+  }
+  
+  ------------------------------------------
+  -- FUNCTIONS
+  ------------------------------------------
+  
+  -- PANELS
+  local function panel_list()
+      local list = {}
+      for _, component in ipairs(Component.GetComponents()) do
+          if table.contains(inventory.controlDevices, component.Type) then
+          table.insert(list, component.Name)
+          end
+      end
+      return list
+  end
+  
+  
+  local function isReadOnly(attribute)
+  --attribute should be a table for the component control
+  return attribute.Direction == "Read Only"
+  end
+  
+  local function isDynamic(panel)
+  for _, t in pairs(Component.GetControls(panel)) do
+      if table.contains(t, "current.uci") then
+      return not isReadOnly(t)  -- t is the attribute table that contains the current.uci control. 
+      end
+  end
+  end
+  
+  
+  local function Pages(panel)
+      return Component.New(panel)["current.page"]
+  end
+  
+  local function output_pin( ctl, num )
+      if num == 10 then num = 0 end
+      if ctl.Boolean then
+          PIN = PIN..num
+          Controls.pinDisplay.String = string.rep("*", #PIN)
+      end
+  end
+  
+  local function clear_pin( ctl )
+      if ctl.Boolean then
+          PIN = ''; Controls.pinDisplay.String = ''
+      end
+  end
+  
+  local function enter_pin( ctl )
+      if ctl.Boolean then
+          -- Check pin
+          local bool = table.contains(CODES, PIN)
+          if bool and PIN ~= props["Admin Pin"].String then
+              local idx = table.contains(Controls.pinCode, PIN)
+              Controls.pageSelection.String = Controls.pinPage[idx].String
+          elseif PIN == props["Admin Pin"].String then
+              Controls.pageSelection.String = Contols.adminPage.String
+          else
+              Controls.pinDisplay.String = 'INCORRECT'; Timer.CallAfter(
+                  function() Controls.pinDisplay = '' end,
+                  2
+              )
+          end
+      end
+  end
+  
+  local function add_pin_code(index)
+      table.insert(CODES, Controls.pinCode[index])
+  end
+  
+  local function remove_pin_code(index)
+      local _, idx = table.contains(CODES, Controls.pinCode[index])
+      if idx then table.remove(CODES, idx) end
+  end
+  
+  
+  for _, panel in pairs(panel_list()) do
+      if not isDynamic(panel) then print(panel, "Is not configured to be dynamic.") end
+      -- for _, ctl in pairs(Component.GetControls(panel)) do
+      --     -- for name, val in pairs(ctl) do print(v, i, name,val) end
+      --     print("\t", ctl.Name, ctl.Direction, ctl.Type)
+      -- end
+  end
+  
+  function UpdateLabels()
+      for ctl in pairs(Controls) do
+          if ctl:match("pageLabel_%d") then Controls[ctl].Choices = Pages(Controls.panelSelection.String).Choices end
+      end
+  end
+  
+  local function get_landing_pages()
+      local pages = Pages(Controls.panelSelection.String)
+      Controls.adminLandingPage.Choices = pages
+      for _ ,ctl in pairs(Controls.pinLandingPage) do
+          ctl.Choices = pages
+      end 
+  end
+  
+  -----------------------------------------------------------------------------
+  -- EVENTHANDLERS
+  -----------------------------------------------------------------------------
+  -- Panel Controls
+  Controls.panelSelection.EventHandler = function( ctl )
+      Controls.pageSelection.Choices = Pages(Controls.panelSelection.String).Choices
+      get_landing_pages()
+      UpdateLabels()
+  end
+  
+  Controls.pageSelection.EventHandler = function( ctl )
+      Pages(Controls.panelSelection.String).String = ctl.String
+  end
+  
+  
+  -- Pin Number Controls
+  for index, ctl in pairs(Controls.numPad) do
+      ctl.EventHandler = function()
+          output_pin( ctl, index )
+      end
+  end
+  
+  Controls.clear.EventHandler = clear_pin
+  
+  for index, ctl in pairs(Controls.pinCode) do
+      ctl.EventHandler = function()
+          if ctl.Boolean then
+              add_pin_code(index)
+          else
+              remove_pin_code(index)
+          end
+      end
+  end
+  
+  
+  --------------------------------------------------------------------
+  -- INIT
+  --------------------------------------------------------------------
+  -- Set the Panel List
+  Controls.panelSelection.Choices = panel_list()
+  
+  -- Set a default Panel Selection
+  if Controls.panelSelection.String == '' then Controls.panelSelection.String = Controls.panelSelection.Choices[1] end
+  
+  -- Set Page List
+  Controls.pageSelection.Choices = Pages(Controls.panelSelection.String).Choices
+  
+  -- Set Page list for pin code landing pages
+  get_landing_pages()
+end
