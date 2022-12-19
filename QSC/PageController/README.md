@@ -1,32 +1,67 @@
-# BasePlugin
+# Page Navigation
 
-This is a template plugin that you can download with some pre-written Lua code to get you started.
+This is a plugin that allows you to control pages of a given touch panel. This can be both a UCI viewer or a dedicated panel.
 
-## PluginCompile
+## Properties
 
-This is a submodule built for VS Code. Please note it is not intended to be used for any other source code editors.
+  - Page Buttons
+    - INT: This allow the user to define how many page flip buttons they would like to use. 
 
-The submodule will take the individual source Lua files in your local repo, compile them into a singular qplug file, and auto increment the desired octet of the BuildVersion.
-For first time builds, it will auto-generate an UUID for you plugin as well.
+  - Defined Pass Codes
+    - INT: This allow the user to set a number of custom pin codes to access various pages in the UCI.
 
-Make sure to map a keyboard shortcut by navigating to File>Preferences>Keyboard Shortcuts. Type in "Tasks" and assign the desired shortcut to the Tasks: Run Build Task command
+  - Admin Pin
+    -STRING: This allows the user to set a "backdoor" pin to allow access to a specific touch panel page. 
 
-### Build Arguments
+## Using The Plugin
 
-<ver_maj> : increments the first octet of BuildVersion to denote a major version change
+### Configuration Page
 
-<ver_min> : increments the second octet of BuildVersion to denote a minor version change
+#### Panel Selection
 
-<ver_fix> : increments the third octet of BuildVersion to denote a bugfix
+This is a dropdown menu that allows the user to choosae which panel the plugin should be linked to. Switching this will dymanically update the plugin options, and can be done even on a LIVE core.
 
-<ver_dev> : increments the fourth octet of BuildVersion to denote a new development version
+#### UCI Selection
 
-< CANCEL > : cancels the build process
-  
-Please note that the public version (PluginVersion) only displays first and second octet. The second octets are intended for developer use and version tracking.
+If the UCI was set to dynamic, then the user can use this field to dynamically change which UCI is being loaded on to the panel selected in "Panel Selection". 
 
-## Support
+#### Pin Code Configuration
 
-If you have any questions or concerns with this template, please contact qsyscontrolfeedback@qsc.com
+###### Admin Page
 
-Please note that QSC does not support plugins authored by third party developers or companies.
+This is where the user can set the page they would like to navigate to when the admin pin is entered in the pin pad. This pin is always active. 
+
+###### Custom Pins
+
+The number of available pins are determined by the properties of the touch panel plugin. Each custom pin has three fields that can be updated. 
+
+  - Enable button:
+    - This button allows the user to quickly and dynamically enable or disable pin codes. 
+  - Pin:
+    - This is the actual pin string that a user would like to set. NOTE: This technically can be alphanumeric, however the plugin itself only provides the user with a number pad.
+  - Page:
+    - This is where the user can set the page they would like the pin code to send the end user to upon entering the correct pin.
+
+#### Pin Code Configuration
+
+This is simply a number pad with a display. 
+
+Users won't see the actual digits they are inputting but will instaead see "*" for each digit. 
+
+There are also back, clear, and enter buttons. 
+
+#### Control
+
+This is the main page.
+
+###### Page Selection
+
+This is the main driving force behind the page switching for this plugin. In the backend when we execute a page change what we're actually doing is changing this String. 
+
+As a dropdown it can be used directly or the user can choose a number of dedicated buttons that will drive this selector. 
+
+###### Page Buttons
+
+The number of available Page Buttons are determined by the properties of the touch panel plugin. This allows the user to creat buttons that when pushed will always point to the same page no matter what. This also allows for UCI navigation to be done with either buttons or a dropdown menu. 
+
+There is a dropdown menu next to each of the buttons that will allow the user to pick which page they want the button to land on when pressed. 

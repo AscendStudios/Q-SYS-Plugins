@@ -282,5 +282,3 @@ elseif CurrentPage == "Configuration" then
       end
   end
 end
-
--- GIT TEST
