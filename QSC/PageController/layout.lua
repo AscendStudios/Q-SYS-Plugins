@@ -245,7 +245,7 @@ elseif CurrentPage == "Configuration" then
 
     layout["pinCode"] = {
     PrettyName = "Pin Codes",
-    Style = "Text",
+    Style = "ComboBox",
     Size = {btn_w, btn_h},
     Position = { (tol+w)+btn_h, tol+(h*5)},
     Margin = 2
@@ -277,7 +277,8 @@ elseif CurrentPage == "Configuration" then
             PrettyName = "Custom Landing Page "..i,
             Size = {btn_w, btn_h},
             Position = {(tol+w)+btn_h+btn_w, tol+(h*5)+btn_h*(i-1)},
-            Margin = 2
+            Margin = 2,
+            Style = "ComboBox",
         }
       end
   end

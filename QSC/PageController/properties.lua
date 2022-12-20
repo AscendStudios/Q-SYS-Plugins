@@ -8,16 +8,16 @@ local props = {
   {
       Name = "Page Buttons",
       Type = "integer",
-      Min = 0,
+      Min = 2,
       Max = 1000,
-      Value = 1,
+      Value = 3,
   },
   {
       Name = "Defined Pass Codes",
       Type = "integer",
-      Min = 0,
+      Min = 2,
       Max = 100,
-      Value = 1,
+      Value = 4,
   },
   {
     Name = "Admin Pin",
