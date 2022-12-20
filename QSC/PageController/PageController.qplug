@@ -8,7 +8,7 @@
 PluginInfo = {
   Name = "Page Navigation",
   Version = "1.0",
-  BuildVersion = "0.2.1.0",
+  BuildVersion = "0.2.1.3",
   Id = "PageNavigation",
   Author = "Casey Compton",
   Description = "Plugin for full page navigation within Q-SYS control devices"
@@ -668,10 +668,18 @@ if Controls then
           Controls.pageSelection.String = page_name           --Update the plugin dropdown
           Pages(Controls.panelSelection.String).String = page_name   --Update the actual panel
       else
+          Controls.pinDisplay.String = "Error PNF"
+          Timer.CallAfter( function() PIN = ''; Controls.pinDisplay.String = '' end, 2)
           Log.Error(string.format(
               "PAGE LOADING ERROR: \t Page: %s is not found on Panel: %s",
               page_name,
               Controls.panelSelection.String))
+      end
+  end
+  
+  local function clear_pin( ctl )
+      if ctl.Boolean then
+          PIN = ''; Controls.pinDisplay.String = ''
       end
   end
   
@@ -683,11 +691,7 @@ if Controls then
       end
   end
   
-  local function clear_pin( ctl )
-      if ctl.Boolean then
-          PIN = ''; Controls.pinDisplay.String = ''
-      end
-  end
+  
   
   local function enter_pin( ctl )
   
