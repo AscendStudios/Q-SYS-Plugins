@@ -94,3 +94,11 @@ table.insert(ctrls, {
     PinStyle = "Output",
     UserPin = true
 })
+
+table.insert(ctrls, {
+    Name="pinSuccess",
+    ControlType = "Indicator",
+    IndicatorType = "Led",
+    PinStyle = "Output",
+    UserPin = true
+})

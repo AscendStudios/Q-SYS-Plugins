@@ -92,6 +92,15 @@ local function enter_pin( ctl )
         )
     end
 
+    local function correct()
+        local p = Controls.pinSuccess
+        p.Boolean = true; p.Color = "green"
+        Timer.CallAfter(
+            function() p.Boolean = false; p.Color = "#FF7C0000" end,
+            1
+        )
+    end
+
     local pseudo_ctl = {Boolean = true}
 
     if ctl.Boolean then
@@ -102,6 +111,7 @@ local function enter_pin( ctl )
                     Log.Message("Admin Logged In")
                     set_page(Controls.adminLandingPage.String)
                     clear_pin(pseudo_ctl)
+                    correct()
                     return
                 end
             else
@@ -109,6 +119,7 @@ local function enter_pin( ctl )
                     Log.Message(string.format("User: %d Logged In", name))
                     set_page( Controls.pinLandingPage[name].String)
                     clear_pin(pseudo_ctl)
+                    correct()
                     return
                 end
             end

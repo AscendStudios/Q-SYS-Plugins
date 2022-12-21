@@ -8,7 +8,7 @@
 PluginInfo = {
   Name = "Page Navigation",
   Version = "1.0",
-  BuildVersion = "0.4.0.42",
+  BuildVersion = "0.4.0.63",
   Id = "PageNavigation",
   Author = "Casey Compton",
   Description = "Plugin for full page navigation within Q-SYS control devices"
@@ -190,6 +190,14 @@ function GetControls(props)
       Name="panelStatus",
       ControlType = "Indicator",
       IndicatorType = "Status",
+      PinStyle = "Output",
+      UserPin = true
+  })
+  
+  table.insert(ctrls, {
+      Name="pinSuccess",
+      ControlType = "Indicator",
+      IndicatorType = "Led",
       PinStyle = "Output",
       UserPin = true
   })
@@ -376,6 +384,28 @@ function GetControlLayout(props)
         Position = {tol, tol},
         FontSize = fonts.normal
     }
+  
+    table.insert(graphics, {
+      Type = "Text",
+      Text = "Pin Success",
+      Position = { tol*2 + w, tol},
+      Size = { btn_w, btn_h },
+      FontSize = fonts.small
+    })
+  
+    layout["pinSuccess"] = {
+      PrettyName = "Pin Success",
+      Style = "Indicator",
+      Position = {w+tol*2+(btn_w/2)-7, tol+btn_h},
+      Size = { 15, 15},
+  }
+  
+  table.insert(graphics, {
+      Type = "GroupBox",
+      StrokeWidth = 1,
+      Position = { tol*2 + w, tol + 2 },
+      Size = {btn_w, h - 4}
+  })
   
   ---------------------------------------------------------------
   -------------------------CONFIGURATION-------------------------
@@ -826,7 +856,7 @@ if Controls then
     local function backspace_pin( ctl )
         if ctl.Boolean then
             PIN = PIN:sub(1, #PIN -1)
-            Controls.pinDisplay.String = PIN
+            Controls.pinDisplay.String = string.rep("*", #PIN)
         end
     end
     
@@ -836,6 +866,15 @@ if Controls then
             Controls.pinDisplay.String = 'INCORRECT'; Timer.CallAfter(
                 function() Controls.pinDisplay.String = ''; PIN = '' end,
                 2
+            )
+        end
+    
+        local function correct()
+            local p = Controls.pinSuccess
+            p.Boolean = true; p.Color = "green"
+            Timer.CallAfter(
+                function() p.Boolean = false; p.Color = "#FF7C0000" end,
+                1
             )
         end
     
@@ -849,6 +888,7 @@ if Controls then
                         Log.Message("Admin Logged In")
                         set_page(Controls.adminLandingPage.String)
                         clear_pin(pseudo_ctl)
+                        correct()
                         return
                     end
                 else
@@ -856,6 +896,7 @@ if Controls then
                         Log.Message(string.format("User: %d Logged In", name))
                         set_page( Controls.pinLandingPage[name].String)
                         clear_pin(pseudo_ctl)
+                        correct()
                         return
                     end
                 end

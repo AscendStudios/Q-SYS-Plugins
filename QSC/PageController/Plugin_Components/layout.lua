@@ -175,6 +175,28 @@ elseif CurrentPage == "Passcode" then
       FontSize = fonts.normal
   }
 
+  table.insert(graphics, {
+    Type = "Text",
+    Text = "Pin Success",
+    Position = { tol*2 + w, tol},
+    Size = { btn_w, btn_h },
+    FontSize = fonts.small
+  })
+
+  layout["pinSuccess"] = {
+    PrettyName = "Pin Success",
+    Style = "Indicator",
+    Position = {w+tol*2+(btn_w/2)-7, tol+btn_h},
+    Size = { 15, 15},
+}
+
+table.insert(graphics, {
+    Type = "GroupBox",
+    StrokeWidth = 1,
+    Position = { tol*2 + w, tol + 2 },
+    Size = {btn_w, h - 4}
+})
+
 ---------------------------------------------------------------
 -------------------------CONFIGURATION-------------------------
 ---------------------------------------------------------
