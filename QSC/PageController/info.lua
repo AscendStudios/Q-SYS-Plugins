@@ -2,7 +2,7 @@
 PluginInfo = {
   Name = "Page Navigation",
   Version = "1.0",
-  BuildVersion = "0.3.0.18",
+  BuildVersion = "0.4.0.0",
   Id = "PageNavigation",
   Author = "Casey Compton",
   Description = "Plugin for full page navigation within Q-SYS control devices"

@@ -38,7 +38,7 @@ local PIN = ''
 local CODES = {["Admin"] = {
     pin = Properties["Admin Pin"].Value,
     page = Controls.adminLandingPage.String,
-    enabled = true,
+    enabled = Properties["Admin Pin"].Value ~= '',
 } }
 -- Add in the custom pin codes to the codes table
 for i=1, Properties["Defined Pass Codes"].Value do
@@ -139,7 +139,7 @@ local function enter_pin( ctl )
     if ctl.Boolean then
 
         for name, code in pairs(CODES) do
-            if name == "Admin" then
+            if name == "Admin" and code.enabled then
                 if PIN == code.pin then
                     Log.Message("Admin Logged In")
                     set_page(Controls.adminLandingPage.String)
@@ -278,12 +278,3 @@ if isDynamic(Controls.panelSelection.String) then
 else
     Controls.uciSelection.String = "UCI is Static."
 end
-
-for index, ctl in pairs(Controls.numPad) do
-    if index == 10 then index = 0 end
-    ctl.Legend = index
-end
-
-Controls.back.Legend = "Back"
-Controls.enter.Legend = "Enter"
-Controls.clear.Legend = "Clear"

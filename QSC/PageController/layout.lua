@@ -105,8 +105,10 @@ elseif CurrentPage == "Passcode" then
     }
 
     for i=1, 10 do
+        local zero = nil
         if i == 10 then
             row, col = 4, 2
+            zero = "0"
         elseif i < 4 then
             row, col = 1, i
         elseif i < 7 then
@@ -116,8 +118,10 @@ elseif CurrentPage == "Passcode" then
         end
         layout["numPad "..i] = {
             PrettyName = "Num Pad "..i,
+            Legend = zero or tostring(i),
             Size = {h, h},
-            Position = {tol + col*h-h, tol + row*h}
+            Position = {tol + col*h-h, tol + row*h},
+            FontSize = fonts.normal
         }
     end
 
@@ -125,11 +129,13 @@ elseif CurrentPage == "Passcode" then
       PrettyName = "Clear",
       Style = "Button",
       ButtonType = "Momentary",
+      Legend = "Clear",
       Size = {h, h},
       Position = {tol, tol + 4*h}
   }
   layout["back"] = {
       PrettyName = "Back",
+      Legend = "Back",
       Style = "Button",
       ButtonType = "Momentary",
       Size = {h, h},
@@ -137,17 +143,20 @@ elseif CurrentPage == "Passcode" then
   }
   layout["enter"] = {
       PrettyName = "Enter",
+      Legend = "Enter",
       Style = "Button",
       ButtonType = "Momentary",
       Size = {w, h},
-      Position = {tol, tol + 5*h}
+      Position = {tol, tol + 5*h},
+      FontSize = fonts.normal
   }
   layout["pinDisplay"] = {
       PrettyName = "Pin Display",
       Style = "Text",
       Margin = 2,
       Size = {w, h},
-      Position = {tol, tol}
+      Position = {tol, tol},
+      FontSize = fonts.normal
   }
 
 ---------------------------------------------------------------

@@ -8,7 +8,7 @@
 PluginInfo = {
   Name = "Page Navigation",
   Version = "1.0",
-  BuildVersion = "0.3.0.18",
+  BuildVersion = "0.4.0.0",
   Id = "PageNavigation",
   Author = "Casey Compton",
   Description = "Plugin for full page navigation within Q-SYS control devices"
@@ -299,8 +299,10 @@ function GetControlLayout(props)
       }
   
       for i=1, 10 do
+          local zero = nil
           if i == 10 then
               row, col = 4, 2
+              zero = "0"
           elseif i < 4 then
               row, col = 1, i
           elseif i < 7 then
@@ -310,8 +312,10 @@ function GetControlLayout(props)
           end
           layout["numPad "..i] = {
               PrettyName = "Num Pad "..i,
+              Legend = zero or tostring(i),
               Size = {h, h},
-              Position = {tol + col*h-h, tol + row*h}
+              Position = {tol + col*h-h, tol + row*h},
+              FontSize = fonts.normal
           }
       end
   
@@ -319,11 +323,13 @@ function GetControlLayout(props)
         PrettyName = "Clear",
         Style = "Button",
         ButtonType = "Momentary",
+        Legend = "Clear",
         Size = {h, h},
         Position = {tol, tol + 4*h}
     }
     layout["back"] = {
         PrettyName = "Back",
+        Legend = "Back",
         Style = "Button",
         ButtonType = "Momentary",
         Size = {h, h},
@@ -331,17 +337,20 @@ function GetControlLayout(props)
     }
     layout["enter"] = {
         PrettyName = "Enter",
+        Legend = "Enter",
         Style = "Button",
         ButtonType = "Momentary",
         Size = {w, h},
-        Position = {tol, tol + 5*h}
+        Position = {tol, tol + 5*h},
+        FontSize = fonts.normal
     }
     layout["pinDisplay"] = {
         PrettyName = "Pin Display",
         Style = "Text",
         Margin = 2,
         Size = {w, h},
-        Position = {tol, tol}
+        Position = {tol, tol},
+        FontSize = fonts.normal
     }
   
   ---------------------------------------------------------------
@@ -691,7 +700,7 @@ if Controls then
   local CODES = {["Admin"] = {
       pin = Properties["Admin Pin"].Value,
       page = Controls.adminLandingPage.String,
-      enabled = true,
+      enabled = Properties["Admin Pin"].Value ~= '',
   } }
   -- Add in the custom pin codes to the codes table
   for i=1, Properties["Defined Pass Codes"].Value do
@@ -792,7 +801,7 @@ if Controls then
       if ctl.Boolean then
   
           for name, code in pairs(CODES) do
-              if name == "Admin" then
+              if name == "Admin" and code.enabled then
                   if PIN == code.pin then
                       Log.Message("Admin Logged In")
                       set_page(Controls.adminLandingPage.String)
@@ -931,13 +940,4 @@ if Controls then
   else
       Controls.uciSelection.String = "UCI is Static."
   end
-  
-  for index, ctl in pairs(Controls.numPad) do
-      if index == 10 then index = 0 end
-      ctl.Legend = index
-  end
-  
-  Controls.back.Legend = "Back"
-  Controls.enter.Legend = "Enter"
-  Controls.clear.Legend = "Clear"
 end
