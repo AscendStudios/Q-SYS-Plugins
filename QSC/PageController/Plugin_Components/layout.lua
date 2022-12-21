@@ -34,11 +34,27 @@ local col = 1
 ---------------------------------------------------------
 if CurrentPage == "Control" then
 
+    table.insert(graphics, {
+        Type = "Text",
+        Text = "Touch Panel Status",
+        Size = {w, tol/2},
+        Position = {tol, 0}
+    })
+
+    layout["panelStatus"] = {
+        PrettyName = "Touch Panel Status",
+        Style = "Indicator",
+        Position = {tol, tol/2},
+        Size = {w, tol + (tol/2)},
+        Margin = 2,
+        Padding = 3
+    }
+
     table.insert(graphics,
     {
         Type = "Header",
         Text = "Page Selection",
-        Position = { tol, tol },
+        Position = { tol, tol+ (tol/2) },
         Size = { w, h },
         FontSize = fonts.small
       })
@@ -47,7 +63,7 @@ if CurrentPage == "Control" then
     layout.pageSelection = {
         PrettyName = "Page Selection",
         Style = "ComboBox",
-        Position = { tol, tol+h},
+        Position = { tol, tol+ (tol/2)+h},
         Size = { w, h },
         FontSize = fonts.small
       }
@@ -57,8 +73,8 @@ if CurrentPage == "Control" then
     {
         Type = "Header",
         Text = "Page Buttons",
-        Position = { tol, h*2+tol},
-        Size = { w, h },
+        Position = { tol, h*2+tol+tol},
+        Size = { w, btn_h },
         FontSize = fonts.small
       })
     

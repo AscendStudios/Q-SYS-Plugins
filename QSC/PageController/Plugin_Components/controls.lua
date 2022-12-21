@@ -86,3 +86,11 @@ table.insert(ctrls, {
     Name = "pinDisplay",
     ControlType = "Text",
 })
+
+table.insert(ctrls, {
+    Name="panelStatus",
+    ControlType = "Indicator",
+    IndicatorType = "Status",
+    PinStyle = "Output",
+    UserPin = true
+})
