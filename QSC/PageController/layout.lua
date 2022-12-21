@@ -282,4 +282,22 @@ elseif CurrentPage == "Configuration" then
         }
       end
   end
+
+elseif CurrentPage == "About" then
+    -- table.insert(graphics,{
+--   Type = "Text",
+--   Text = "Say Hello:",
+--   Position = {10,42},
+--   Size = {90,16},
+--   FontSize = 14,
+--   HTextAlign = "Right"
+-- })
+
+local logo = "--[[ #encode "ASLogo.png" ]]"
+table.insert(graphics,{
+    Type="Image",
+    Image=logo,
+    Position={tol,tol},
+    Size={139,117}
+  })
 end
