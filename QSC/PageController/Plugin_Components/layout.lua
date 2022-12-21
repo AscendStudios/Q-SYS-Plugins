@@ -302,7 +302,7 @@ elseif CurrentPage == "About" then
 --   HTextAlign = "Right"
 -- })
 local image_w, image_h = 264, 222
-local logo = "--[[ #encode "ASLogo.png" ]]"
+local logo = "--[[ #encode "Assets/ASLogo.png" ]]"
 table.insert(graphics,{
     Type="Image",
     Image=logo,

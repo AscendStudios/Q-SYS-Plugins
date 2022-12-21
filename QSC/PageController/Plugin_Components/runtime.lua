@@ -17,7 +17,7 @@
 
 ]]
 
---[[ #include "advanced_tables.lua" ]]
+--[[ #include "Modules/advanced_tables.lua" ]]
 
 function MakeExclusive(ArrayOfCtrls)
     for i , v in pairs(ArrayOfCtrls) do
