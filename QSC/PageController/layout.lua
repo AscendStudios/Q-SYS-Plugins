@@ -292,12 +292,79 @@ elseif CurrentPage == "About" then
 --   FontSize = 14,
 --   HTextAlign = "Right"
 -- })
-
+local image_w, image_h = 264, 222
 local logo = "--[[ #encode "ASLogo.png" ]]"
 table.insert(graphics,{
     Type="Image",
     Image=logo,
     Position={tol,tol},
-    Size={139,117}
+    Size={image_w,image_h}
   })
+
+  table.insert(graphics, {
+    Type = "GroupBox",
+    Position={tol+image_w,tol},
+    Size={image_w+tol*2,image_h},
+    Fill = colors.light,
+    StrokeWidth = 1,
+  })
+
+  table.insert(graphics, {
+    Type = "Text",
+    Text = "Ascend Studios",
+    Size = {w*2,h},
+    Position = {tol*2+image_w, tol},
+    FontSize = fonts.title,
+    HTextAlign = "Left"
+  })
+
+    table.insert(graphics,{
+        Type = "Text",
+        Text = "Name: "..PluginInfo.Name,
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)},
+        FontSize = fonts.small,
+        HTextAlign = "Left"
+    })
+    table.insert(graphics,{
+        Type = "Text",
+        Text = "Version: "..PluginInfo.Version,
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*2},
+        FontSize = fonts.small,
+        HTextAlign = "Left"
+    })
+    table.insert(graphics,{
+        Type = "Text",
+        Text = "Build: "..PluginInfo.BuildVersion,
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*3},
+        FontSize = fonts.small,
+        HTextAlign = "Left"
+    })
+    table.insert(graphics,{
+        Type = "Text",
+        Text = "Author: "..PluginInfo.Author,
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*4},
+        FontSize = fonts.small,
+        HTextAlign = "Left"
+    })
+    table.insert(graphics,{
+        Type = "Text",
+        Text = "Email: Support@AscendStudios.com",
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*5},
+        FontSize = fonts.small,
+        HTextAlign = "Left"
+    })
+    table.insert(graphics,{
+        Type = "Text",
+        Text = "https://github.com/AscendStudios/Q-SYS-Plugins",
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*6},
+        FontSize = fonts.small,
+        HTextAlign = "Left",
+    })
+
 end
