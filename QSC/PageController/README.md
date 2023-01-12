@@ -15,6 +15,12 @@ This is a plugin that allows you to control pages of a given touch panel. This c
 
 ## Using The Plugin
 
+**Warning**
+In Q-SYS 9.5 and later - You must enable the script access for any touch panel that you would like this script to access. This option can be found in the script access section of the property panel. The script access field must be set to script or all for the plugin to see the panel. 
+
+**Note**
+You may need to put the design into emulation mode and manually set the UCI for association the first time running the plugin within the design. 
+
 ### Configuration Page
 
 #### Panel Selection
