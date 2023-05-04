@@ -1,0 +1,1156 @@
+-- WyreSrom NHD 100 Series Controller
+-- By Casey Compton
+-- July 01 2022
+-- Information block for the plugin
+
+
+PluginInfo = {
+  Name = "Wyrestorm Matrix Controller",
+  Version = "1.0",
+  BuildVersion = "1.2.2.0",
+  Id = "NHD000CTL",
+  Author = "Casey Compton",
+  Description = "Plugin for simple routing using wyrestorm NHD devices"
+}
+local colors = {
+    dark = { 59, 66, 82 },
+    light = { 229, 233, 240 },
+    medium = { 129, 161, 193 },
+    accent = { 143, 188, 187 },
+    red = { 191, 97, 106 },
+    orange = { 208, 135, 112 },
+    yellow = { 235, 203, 139 },
+    green = { 163, 190, 140 },
+    pink = { 180, 142, 173 },
+    block = { 207, 129, 45 }
+}
+
+-- Define the color of the plugin object in the design
+function GetColor(props) return colors.block end
+
+-- The name that will initially display when dragged into a design
+function GetPrettyName(props)
+    return PluginInfo.Name .. "V " .. PluginInfo.Version
+end
+
+-- Optional function used if plugin has multiple pages
+PageNames = { "Routing", "Serial", "Config", "About" }  -- List the pages within the plugin
+function GetPages(props)
+    local pages = {}
+    for ix, name in ipairs(PageNames) do
+        table.insert(pages, { name = PageNames[ix] })
+    end
+    return pages
+end
+
+-- Define User configurable Properties of the plugin
+function GetProperties()
+    local props = {
+        {
+            Name = "Debug Print",
+            Type = "enum",
+            Choices = { "None", "Tx/Rx", "Tx", "Rx", "Function Calls", "All" },
+            Value = "None"
+        },
+        {
+            Name = "Enable Dev",
+            Type = "boolean",
+            Value = false
+        },
+        {
+            Name = "Port",
+            Type = "integer",
+            Min = 0,
+            Max = 65535,
+            Value = 23,
+        },
+        {
+            Name = "Transmitters",
+            Type = "integer",
+            Min = 1,
+            Max = 100,
+            Value = 8,
+        },
+        {
+            Name = "Receivers",
+            Type = "integer",
+            Min = 1,
+            Max = 100,
+            Value = 8,
+        },
+        {
+            Name = "Serial Commands",
+            Type = "integer",
+            Min = 0,
+            Max = 25,
+            Value = 2
+        }
+    
+    }
+    return props
+end
+
+-- Optional function to update available properties when properties are altered by the user
+function RectifyProperties(props)
+    if props.plugin_show_debug.Value == false then
+      props["Debug Print"].IsHidden = true
+    end
+    if props["Enable Dev"].Value == false then
+      props["Port"].IsHidden = true
+    end
+    return
+        props
+end
+
+--[[
+      TODO:
+            Add Custom Prompt
+            Add Submit Button for Custom
+            Add Serial Labels
+            Add Serial Buttons
+  ]]
+-- Defines the Controls used within the plugin
+function GetControls(props)
+    local ctrls = {
+      -- System Config --
+      {
+        Name = "IpAddress",
+        ControlType = "Text",
+        Count = 1,
+        PinStyle = "Both",
+        UserPin = true
+      },
+      {
+        Name = "Connect",
+        ControlType = "Button",
+        ButtonType = "Toggle",
+        PinStyle = "Both",
+        UserPin = true
+      },
+      {
+        Name = "Online",
+        ControlType = "Indicator",
+        IndicatorType = "Led",
+        PinStyle = "Output",
+        Count = 1,
+        UserPin = true
+      },
+      {
+        Name = "ConnectionState",
+        ControlType = "Indicator",
+        IndicatorType = "Status",
+        PinStyle = "Output",
+        UserPin = true
+      },
+      {
+        Name = "Console",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+      },
+      {
+        Name = "Prompt",
+        ControlType = "Text",
+      },
+      {
+        Name = "Prompt_Retrun",
+        ControlType = "Button",
+        ButtonType = "Momentary"
+      }
+    }
+    
+    -- Controls --
+    
+    for i = 1, props.Transmitters.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "TX_Btn_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Toggle",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+      table.insert(ctrls,
+                   {
+                     Name = "TX_label_" .. i,
+                     ControlType = "Text",
+                     PinStyle = "Input",
+                     UserPin = true
+                   })
+    end
+    
+    for i = 1, props.Receivers.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "RX_Btn_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Toggle",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+    
+      table.insert(ctrls,
+                   {
+                     Name = "RX_label_" .. i,
+                     ControlType = "Text",
+                     PinStyle = "Input",
+                     UserPin = true
+                   })
+    end
+    
+    table.insert(ctrls,
+                 {
+                   Name = "RX_All",
+                   ControlType = "Button",
+                   ButtonType = "Toggle",
+                   PinStyle = "Both",
+                   UserPin = true
+                 })
+    
+    for i = 1, props.Transmitters.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "Serial_Btn_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Momentary",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+      table.insert(ctrls,
+                   {
+                     Name = "Serial_Str_" .. i,
+                     ControlType = "Text",
+                     PinStyle = "Input",
+                     UserPin = true
+                   })
+    end
+    
+    return ctrls
+end
+
+-- Layout of controls and graphics for the plugin UI to display
+function GetControlLayout(props)
+    local layout, graphics = {}, {}
+    local input_count = props.Transmitters.Value
+    local output_count = props.Receivers.Value
+    local serial_count = props["Serial Commands"].Value
+    
+    local title_size = { 212, 50 }
+    local btn_size = { 50, 25 }
+    local label_size = { 125, 25 }
+    
+    local font_size = 16
+    
+    local bottom
+    if input_count > output_count then
+      bottom = input_count
+    else
+      bottom = output_count + 1
+    end
+    
+    local CurrentPage = PageNames[props["page_index"].Value]
+    
+    if CurrentPage == "Routing" then
+      graphics = {
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 25, 25 },
+          Size = { 250, props.Transmitters.Value * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "Transmitters",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 44, 25 },
+          Size = title_size,
+        },
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 300, 25 },
+          Size = { 250, (props.Receivers.Value + 1) * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "Receivers",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 319, 25 },
+          Size = title_size,
+        },
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 575, 25 },
+          Size = { 250, 8 * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "Console",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 594, 25 },
+          Size = title_size,
+        },
+      }
+    
+      for i = 1, input_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 50, 25 * i + 50 }
+          }
+        )
+      end
+    
+      for i = 1, output_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 312, 25 * i + 50 }
+          }
+        )
+      end
+    
+      table.insert(
+        graphics,
+        {
+          Type = "Text",
+          Text = "All Receivers",
+          HTextAlign = "Center",
+          FontSize = font_size,
+          Color = colors.accent,
+          Size = label_size,
+          Position = { 337, 25 * (output_count + 1) + 50 }
+        }
+      )
+    
+      for i = 1, input_count do
+        layout["TX_label_" .. i] = {
+          PrettyName = "Transmiter " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.green,
+          Size = label_size,
+          Position = { 75, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["TX_Btn_" .. i] = {
+          PrettyName = "Transmiter " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 212, 25 * i + 50 },
+          Margin = 2,
+        }
+      end
+    
+      for i = 1, output_count do
+        layout["RX_label_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.orange,
+          Size = label_size,
+          Position = { 337, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["RX_Btn_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["RX_All"] = {
+          PrettyName = "Receiver All~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * (output_count + 1) + 50 },
+          Margin = 2,
+        }
+      end
+    
+      layout["Console"] = {
+        PrettyName = "Console Display",
+        Style = "Text",
+        HTextAlign = "Left",
+        VTextAlign = "Bottom",
+        Padding = 5,
+        FontSize = 10,
+        Position = { 600, 75 },
+        Size = { 200, (7 * 25) },
+        Color = colors.light
+      }
+      layout["Prompt"] = {
+        PrettyName = "Console Prompt",
+        Style = "Text",
+        FontSize = 10,
+        HTextAlign = "Left",
+        Position = { 600, (8 * 25) + 50 },
+        Size = { label_size[1] + 25, label_size[2] },
+        Color = colors.light,
+    
+      }
+      layout["Prompt_Retrun"] = {
+        PrettyName = "Return",
+        Style = "Button",
+        Legend = "Enter",
+        FontSize = font_size,
+        Position = { 600 + label_size[1] + 25, (8 * 25) + 50 },
+        Size = btn_size,
+        Color = colors.accent,
+      }
+    
+      layout["ConnectionState"] = {
+        PrettyName = "System~Online",
+        Style = "Indicator",
+        FontSize = font_size,
+        Position = { 25, bottom * 25 + 125 },
+        Size = { 525, 50 }
+      }
+    elseif CurrentPage == "Serial" then
+      graphics = {
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 25, 25 },
+          Size = { 250, serial_count * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "Serial Commands",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 50, 25 },
+          Size = title_size,
+        },
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 300, 25 },
+          Size = { 250, (output_count + 1) * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "Receivers",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 312, 25 },
+          Size = title_size,
+        },
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 575, 25 },
+          Size = { 250, 8 * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "Console",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 594, 25 },
+          Size = title_size,
+        },
+      }
+    
+      for i = 1, serial_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 50, 25 * i + 50 }
+          }
+        )
+      end
+    
+      for i = 1, output_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 312, 25 * i + 50 }
+          }
+        )
+      end
+    
+      table.insert(
+        graphics,
+        {
+          Type = "Text",
+          Text = "All Receivers",
+          HTextAlign = "Center",
+          FontSize = font_size,
+          Color = colors.accent,
+          Size = label_size,
+          Position = { 337, 25 * (output_count + 1) + 50 }
+        }
+      )
+    
+      for i = 1, serial_count do
+        layout["Serial_Str_" .. i] = {
+          PrettyName = "Transmiter " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.pink,
+          Size = label_size,
+          Position = { 75, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["Serial_Btn_" .. i] = {
+          PrettyName = "Transmiter " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 212, 25 * i + 50 },
+          Margin = 2,
+        }
+      end
+    
+      for i = 1, output_count do
+        layout["RX_label_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.orange,
+          Size = label_size,
+          Position = { 337, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["RX_Btn_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["RX_All"] = {
+          PrettyName = "Receiver All~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * (output_count + 1) + 50 },
+          Margin = 2,
+        }
+      end
+    
+      layout["Console"] = {
+        PrettyName = "Console Display",
+        Style = "Text",
+        HTextAlign = "Left",
+        VTextAlign = "Bottom",
+        Padding = 5,
+        FontSize = 10,
+        Position = { 600, 75 },
+        Size = { 200, (7 * 25) },
+        Color = colors.light
+      }
+      layout["Prompt"] = {
+        PrettyName = "Console Prompt",
+        Style = "Text",
+        FontSize = 10,
+        HTextAlign = "Left",
+        Position = { 600, (8 * 25) + 50 },
+        Size = { label_size[1] + 25, label_size[2] },
+        Color = colors.light,
+    
+      }
+      layout["Prompt_Retrun"] = {
+        PrettyName = "Return",
+        Style = "Button",
+        Legend = "Enter",
+        FontSize = font_size,
+        Position = { 600 + label_size[1] + 25, (8 * 25) + 50 },
+        Size = btn_size,
+        Color = colors.accent,
+      }
+    
+      layout["ConnectionState"] = {
+        PrettyName = "System~Online",
+        Style = "Indicator",
+        FontSize = font_size,
+        Position = { 25, bottom * 25 + 125 },
+        Size = { 525, 50 }
+      }
+    elseif CurrentPage == "Config" then
+      graphics = {
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 25, 25 },
+          Size = { 262, 287 }
+        },
+        {
+          Type = "Header",
+          Text = "Configuration",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 50, 25 },
+          Size = title_size,
+        },
+      }
+      layout["IpAddress"] = {
+        PrettyName = "System~IpAddress",
+        Style = "Textbox",
+        Position = { 50, 75 },
+        Size = title_size,
+        FontSize = font_size,
+        Color = colors.medium,
+        FontColor = colors.light,
+      }
+      layout["ConnectionState"] = {
+        PrettyName = "System~Online",
+        Style = "Indicator",
+        FontSize = font_size,
+        Position = { 50, 137 },
+        Size = title_size
+      }
+      table.insert(
+        graphics,
+        {
+          Type = "Header",
+          Text = "Connect",
+          Size = title_size,
+          HTextAlign = "Center",
+          FontSize = font_size,
+          Position = { 50, 187 },
+          Color = colors.accent
+        }
+      )
+      layout["Connect"] = {
+        PrettyName = "System~Connect",
+        Style = "Button",
+        ButtonType = "Toggle",
+        Color = colors.accent,
+        FontColor = colors.light,
+        Size = title_size,
+        Position = { 50, 237 },
+      }
+    elseif CurrentPage == "About" then
+      graphics = {
+        {
+          Type = "Header",
+          Text = "About",
+          Size = title_size,
+          HTextAlign = "Center",
+          FontSize = font_size,
+          Position = { 50, 5 },
+          Color = colors.medium
+        },
+        {
+          Type = "Textbox",
+          Text = "Name",
+          Size = { 75, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 50, 50 },
+          Color = colors.medium
+        },
+        {
+          Type = "Textbox",
+          Text = "Version",
+          Size = { 75, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 50, 75 },
+          Color = colors.medium
+        },
+        {
+          Type = "Textbox",
+          Text = "Build",
+          Size = { 75, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 50, 100 },
+          Color = colors.medium
+        },
+        {
+          Type = "Textbox",
+          Text = "Author",
+          Size = { 75, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 50, 125 },
+          Color = colors.medium
+        },
+        {
+          Type = "Textbox",
+          Text = "Description",
+          Size = { 75, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 50, 150 },
+          Color = colors.medium
+        },
+        {
+          Type = "Textbox",
+          Text = PluginInfo.Name,
+          Size = { 200, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 125, 50 },
+          Color = colors.dark
+        },
+        {
+          Type = "Textbox",
+          Text = PluginInfo.Version,
+          Size = { 200, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 125, 75 },
+          Color = colors.dark
+        },
+        {
+          Type = "Textbox",
+          Text = PluginInfo.BuildVersion,
+          Size = { 200, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 125, 100 },
+          Color = colors.dark
+        },
+        {
+          Type = "Textbox",
+          Text = PluginInfo.Author,
+          Size = { 200, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 125, 125 },
+          Color = colors.dark
+        },
+        {
+          Type = "Textbox",
+          Text = PluginInfo.Description,
+          Size = { 200, 25 },
+          VTextAlign = "Top",
+          HTextAlign = "Left",
+          Position = { 125, 150 },
+          Color = colors.dark
+        },
+    
+        -- TODO: Add an logo image
+    
+      }
+    end
+    return layout, graphics
+end
+
+-- Start event based logic
+if Controls then
+        local json = require("json")
+        local icons = require "icons"
+        
+        local Utilities = {}
+        
+        function Utilities.hello()
+          print("Hello World!")
+        end
+        
+        
+        function Utilities.draw_icon(icon_name, color)
+          local data = {
+            DrawChrome = true,
+            IconString = icons[icon_name]
+          }
+          if color then
+            data.Color = color
+          end
+          return json.encode(data)
+        end
+        
+        
+        
+        -- Updated to pairs instead of ipairs to handle string indexing--
+        function Utilities.exclude( ctl, ctl_table )
+          if ctl.Boolean then
+            for i, c in pairs( ctl_table ) do
+              if c ~= ctl then c.Boolean = false end
+            end
+          end
+        end
+        
+        
+        -- return Utilities
+        --[[
+        
+        Advanced Table functions that are not implemented in LUA
+        
+          To use:
+            require("Advanced_Tables")
+            Then call as expeted - table.reverse(tbl)
+        
+        --]]
+        
+        local table = table
+        
+        function table.is_empty(self)
+          return #self == 0
+        end
+        
+        -- Adding a return on index as an option to grab --
+        function table.contains(self, element, ...)
+          for index, value in pairs(self) do
+            if ... then value = value[...] end
+            if value == element then
+              return true, index
+            end
+          end
+          return false, nil
+        end
+        
+        function table.reverse(self)
+          for i=1, math.floor(#self / 2) do
+            self[i], self[#self - i + 1] = self[#self - i + 1], self[i]
+          end
+        end
+        
+        function table.print(self)
+          local rj = require "rapidjson"
+          print(rj.encode(self, {pretty=true}))
+        end
+        
+        function table.keys(self)
+          local keyset={}
+          for key in pairs(self) do
+            table.insert(keyset, key)
+          end
+          return keyset
+        end
+        
+        function table.values(self)
+          local valset = {}
+          for i, v in pairs(self) do
+            valset[v] = i
+          end
+          return valset
+        end
+        
+        function table.test(self, func, ...)
+          --[[
+          This function will test if each item in a table return true given
+          the provided condition. The condition should be given as a function
+          that will return a boolean value. The function's first parameter
+          must be the table variable. afterwards, additional arguments can be
+          provided.
+          --]]
+          local counter = 0
+          for key, value in pairs(self) do
+            if func(value, ...) then
+              counter = counter + 1
+            else
+              break
+            end
+          end
+          return counter == #self
+        end
+        
+        -- Function to count elements in a table.
+        -- Default uses values, but keys can be used by setting keys = true
+        function table.count(self, element, keys)
+          local count = 0
+          for idx, item in pairs(self) do
+            if keys then item = idx end
+            if item == element then count = count + 1 end
+          end
+          return count
+        end
+        
+        -- return table
+        --[[
+        
+        Advanced string functions that are not implemented in LUA
+        This Module hot patches the string library with additional methods
+        
+          To use:
+            require("String")
+            Then call as expeted - string.split(string)
+        
+        --]]
+        local string = string
+        
+        function string.trim (s)
+          return s:match'^%s*(.*)'
+        end
+        
+        function string.split(self, sep, regex)
+          local list = {}
+          local position = 1
+          if not regex then mode = "plain" end
+          local index, z = string.find(self, sep, 1, mode)
+          while index do
+            table.insert(list, string.sub(self, position, index -1))
+            position = z + 1
+            index, z = string.find(self, sep, position, mode)
+          end
+          table.insert(list, string.sub(self, position, -1))
+          if #list == 0 then list = self end
+          return list
+        end
+        
+        -- return string
+    local function clear_console() Controls.Console.String = '' end
+    
+    
+    local function logConsole(new_txt)
+        local old_txt = Controls.Console.String
+        local console_list = string.split(old_txt, '\n')
+    
+        if #console_list > 25 then
+            clear_console()
+            old_txt = Controls.Console.String
+        end
+    
+        old_txt = string.gsub(old_txt, '-----\n', '')
+        old_txt = string.gsub(old_txt, '\n\n', '\n')
+        Controls.Console.String = old_txt .. '\n-----\n' .. os.date('%H:%M:%S ') .. new_txt
+    end
+    
+        local input_count = Properties["Transmitters"].Value
+        local output_count = Properties["Receivers"].Value
+        local serial_count = Properties["Serial Commands"].Value
+        
+        local NHD_CTL = {
+          ip = function() return Controls.IpAddress.String end,
+          port = Properties["Port"].Value
+        }
+        
+        -- Build Button And Label Tables
+        Controls.TX_Buttons, Controls.RX_Buttons = {}, {}
+        Controls.TX_Labels, Controls.RX_Labels = {}, {}
+        Controls.Serial_Commands, Controls.Serial_Buttons = {}, {}
+        
+        local function build_tables()
+          for i = 1, output_count do
+            table.insert(Controls.RX_Buttons, Controls["RX_Btn_" .. i])
+            table.insert(Controls.RX_Labels, Controls["RX_label_" .. i])
+          end
+        
+          for i = 1, input_count do
+            table.insert(Controls.TX_Buttons, Controls["TX_Btn_" .. i])
+            table.insert(Controls.TX_Labels, Controls["TX_label_" .. i])
+          end
+        
+          for i = 1, serial_count do
+            table.insert(Controls.Serial_Buttons, Controls["Serial_Btn_" .. i])
+            table.insert(Controls.Serial_Commands, Controls["Serial_Str_" .. i])
+          end
+        end
+        
+        build_tables()
+        local conn = TcpSocket.New()
+        
+        conn.ReadTimeout = 0
+        conn.WriteTimeout = 0
+        conn.ReconnectTimeout = 5
+        
+        local function connect_to_sock(ip, port)  -- Tries to connect the socket, but checks to see if IP or port are blank
+          if ip ~= '' and port ~= '' then
+            conn:Connect(ip, tonumber(port))
+          elseif ip == '' then
+            print("Please input an IP address")
+          elseif port == '' then
+            print("Please input a port number")
+          else
+            print("No sock info found")  -- Should never happen
+          end
+        end
+        
+        local connection_init =
+            function()  -- initializes connection and runs the connect_to_sock function
+              if Controls.Connect.Boolean then
+                Controls.Connect.Legend = "Close Connection"
+                print("\nOpening a connection...")
+                connect_to_sock(NHD_CTL.ip(), NHD_CTL.port)
+                Controls.ConnectionState.String = "Initializing - Connection..."
+              else
+                Controls.Connect.Legend = "Open Connection"
+                print("\nClosing connection...")
+                conn:Disconnect()
+                Controls.ConnectionState.String = "Not Present - Closed by user"
+                Controls.ConnectionState.Color = 'Gray'
+              end
+            end
+        
+        -- Setup Utility Callbacks as required
+        conn.Connected = function(_conn)
+          print("Connected")
+          Controls.ConnectionState.String = "OK - Connected"
+          Controls.ConnectionState.Color = "Green"
+          Controls["Online"].Boolean = true
+        end
+        conn.Reconnect = function(_conn)
+          Controls.ConnectionState.String = "Initializing - Reconnecting"
+          Controls.ConnectionState.Color = "Blue"
+          Controls["Online"].Boolean = false
+        end
+        conn.Closed = function(_conn)
+          Controls.ConnectionState.String = "Fault - Closed by the remote end"
+          Controls.ConnectionState.Color = "Orange"
+          Controls["Online"].Boolean = false
+        end
+        conn.Error = function(_conn, err)
+          Controls.ConnectionState.String = "Fault - Error :: " .. err
+          Controls.ConnectionState.Color = "Red"
+          Controls["Online"].Boolean = false
+        end
+        conn.Timeout = function(_conn, err)
+          Controls.ConnectionState.String = "Fault - Timeout :: " .. err
+          Controls.ConnectionState.Color = "Orange"
+          Controls["Online"].Boolean = false
+        end
+        
+        -- Data Handling --
+        conn.Data = function()
+          local message_line = conn:ReadLine(TcpSocket.EOL.Any)
+          local message_body = ''
+          while (message_line ~= nil) do  -- While there is data, append each line to message body
+            message_body = message_body .. '\n' .. message_line
+            message_line = conn:ReadLine(TcpSocket.EOL.Any)
+          end
+          logConsole(message_body)
+          return message_body
+        end
+        local function send_route()
+          if conn.IsConnected then
+            local _, input_index = table.contains(Controls.TX_Buttons, true, "Boolean")
+            local input_device = Controls.TX_Labels[input_index]
+            local output_device
+            -- Send to each output
+            for index, ctl in pairs(Controls.RX_Buttons) do
+              if ctl.Boolean then
+                output_device = Controls.RX_Labels[index]
+                -- send TCP command
+                conn:Write("matrix set " .. input_device.String .. " " .. output_device.String .. " \r\n")
+                ctl.Boolean = false
+              end
+            end
+            Controls.TX_Buttons[input_index].Boolean = false
+          else
+            -- TODO: Show the user this.
+            print("Not Connected")
+            return
+          end
+        end
+        
+        local function send_serial(_ctl, _i)
+          local bool = table.contains(Controls.RX_Buttons, true, "Boolean")
+          if _ctl.Boolean and bool then
+            -- TODO: Add baud; bits, parity, cr, lf, hex
+            for index, ctl in pairs(Controls.RX_Buttons) do
+              if ctl.Boolean then
+                conn:Write("serial " .. Controls.Serial_Commands[_i].String .. ' ' .. Controls.RX_Labels[index].String, "\r\n")
+              end
+            end
+          end
+        end
+        
+        local function send_custom(ctl)
+          if ctl.Boolean then
+            conn:Write(Controls.Prompt.String .. "\r\n")
+            logConsole(Controls.Prompt.String)
+          end
+        end
+    -- EVENTHANDLERS --
+        Controls.Connect.EventHandler = connection_init
+        
+        Controls.RX_All.EventHandler = function(ctl)
+          for _, _ctl in ipairs(Controls.RX_Buttons) do
+            _ctl.Boolean = ctl.Boolean
+          end
+          if ctl.Boolean and table.contains(Controls.TX_Buttons, true, "Boolean") then
+            send_route()
+            ctl.Boolean = false
+          end
+        end
+        
+        for _, ctl in ipairs(Controls.TX_Buttons) do
+          ctl.EventHandler = function()
+            Utilities.exclude(ctl, Controls.TX_Buttons)
+            if ctl.Boolean and table.contains(Controls.RX_Buttons, true, "Boolean") then
+              send_route()
+            end
+          end
+        end
+        
+        for _, ctl in ipairs(Controls.RX_Buttons) do
+          ctl.EventHandler = function()
+            if ctl.Boolean and table.contains(Controls.TX_Buttons, true, "Boolean") then
+              send_route()
+            end
+          end
+        end
+        
+        for index, ctl in ipairs(Controls.Serial_Buttons) do
+          ctl.EventHandler = function()
+            send_serial(ctl, index)
+          end
+          
+        end
+        
+        
+        Controls.Prompt_Retrun.EventHandler = send_custom
+    --INIT
+    
+    if Properties["Enable Dev"].Value then
+        Controls.IpAddress.String = "127.00.00.01"  -- If dev mode; set the IP to use local host.
+    end
+    
+    --sync connection status to the button state
+    connection_init()
+end

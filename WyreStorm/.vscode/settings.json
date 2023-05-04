@@ -1,0 +1,26 @@
+{
+  "gitlens.keymap": "alternate",
+  "team.showWelcomeMessage": false,
+  "gitlens.advanced.messages": {
+    "suppressShowKeyBindingsNotice": true
+  },
+  "editor.renderControlCharacters": true,
+  "files.associations": {
+    "*.json": "jsonc"
+  },
+  "files.autoSave": "off",
+  "files.autoSaveDelay": 500,
+  "editor.tabSize": 2,
+  "Lua.diagnostics.globals": [
+    "props",
+    "colors",
+    "Controls",
+    "Properties",
+    "TcpSocket",
+    "output_count",
+    "input_count",
+    "Utilities",
+    "build_tables"
+  ],
+  "Lua.completion.autoRequire": false
+}
