@@ -6,8 +6,8 @@
 
 PluginInfo = {
   Name = "Wyrestorm Matrix Controller",
-  Version = "1.0",
-  BuildVersion = "1.2.2.0",
+  Version = "1.1",
+  BuildVersion = "2.1.1.0",
   Id = "NHD000CTL",
   Author = "Casey Compton",
   Description = "Plugin for simple routing using wyrestorm NHD devices"
@@ -34,7 +34,7 @@ function GetPrettyName(props)
 end
 
 -- Optional function used if plugin has multiple pages
-PageNames = { "Routing", "Serial", "Config", "About" }  -- List the pages within the plugin
+PageNames = { "Routing", "Serial", "USB", "Config", "About" }  -- List the pages within the plugin
 function GetPages(props)
     local pages = {}
     for ix, name in ipairs(PageNames) do
@@ -159,7 +159,7 @@ function GetControls(props)
     }
     
     -- Controls --
-    
+    --[[ VIDEO ROUTING CONTROLS ]]--
     for i = 1, props.Transmitters.Value do
       table.insert(ctrls,
                    {
@@ -206,6 +206,7 @@ function GetControls(props)
                    UserPin = true
                  })
     
+    --[[ SERIAL ROUTING CONTROLS ]]--             
     for i = 1, props.Transmitters.Value do
       table.insert(ctrls,
                    {
@@ -220,6 +221,29 @@ function GetControls(props)
                      Name = "Serial_Str_" .. i,
                      ControlType = "Text",
                      PinStyle = "Input",
+                     UserPin = true
+                   })
+    end
+    
+    --[[ USB ROUTING CONTROLS ]]--
+    for i = 1, props.Transmitters.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "USB_Btn_TX_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Toggle",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+    end
+    
+    for i = 1, props.Receivers.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "USB_Btn_RX_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Toggle",
+                     PinStyle = "Both",
                      UserPin = true
                    })
     end
@@ -625,6 +649,173 @@ function GetControlLayout(props)
         Position = { 25, bottom * 25 + 125 },
         Size = { 525, 50 }
       }
+    
+    elseif CurrentPage == "USB" then
+      graphics = {
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 25, 25 },
+          Size = { 250, input_count * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "USB Transmitters",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 44, 25 },
+          Size = title_size,
+        },
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 300, 25 },
+          Size = { 250, (output_count) * 25 + 75 }
+        },
+        {
+          Type = "Header",
+          Text = "USB Receivers",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 319, 25 },
+          Size = title_size,
+        },
+        {
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 575, 25 },
+          Size = { 250, (input_count) * 25 + 75  }
+        },
+        {
+          Type = "Header",
+          Text = "Console",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 594, 25 },
+          Size = title_size,
+        },
+      }
+    
+      for i = 1, input_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 50, 25 * i + 50 }
+          }
+        )
+      end
+    
+      for i = 1, output_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 312, 25 * i + 50 }
+          }
+        )
+      end
+    
+    
+      for i = 1, input_count do
+        layout["TX_label_" .. i] = {
+          PrettyName = "USB Transmiter " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.green,
+          Size = label_size,
+          Position = { 75, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["USB_Btn_TX_" .. i] = {
+          PrettyName = "USB Transmiter " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 212, 25 * i + 50 },
+          Margin = 2,
+        }
+      end
+    
+      for i = 1, output_count do
+        layout["RX_label_" .. i] = {
+          PrettyName = "USB Receiver " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.orange,
+          Size = label_size,
+          Position = { 337, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["USB_Btn_RX_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * i + 50 },
+          Margin = 2,
+        }
+      end
+    
+      layout["Console"] = {
+        PrettyName = "Console Display",
+        Style = "Text",
+        HTextAlign = "Left",
+        VTextAlign = "Bottom",
+        Padding = 5,
+        FontSize = 10,
+        Position = { 600, 75 },
+        Size = { 200, (7 * 25) },
+        Color = colors.light
+      }
+      layout["Prompt"] = {
+        PrettyName = "Console Prompt",
+        Style = "Text",
+        FontSize = 10,
+        HTextAlign = "Left",
+        Position = { 600, (8 * 25) + 50 },
+        Size = { label_size[1] + 25, label_size[2] },
+        Color = colors.light,
+    
+      }
+      layout["Prompt_Retrun"] = {
+        PrettyName = "Return",
+        Style = "Button",
+        Legend = "Enter",
+        FontSize = font_size,
+        Position = { 600 + label_size[1] + 25, (8 * 25) + 50 },
+        Size = btn_size,
+        Color = colors.accent,
+      }
+    
+      layout["ConnectionState"] = {
+        PrettyName = "System~Online",
+        Style = "Indicator",
+        FontSize = font_size,
+        Position = { 25, bottom * 25 + 125 },
+        Size = { 525, 50 }
+      }
     elseif CurrentPage == "Config" then
       graphics = {
         {
@@ -682,6 +873,7 @@ function GetControlLayout(props)
         Size = title_size,
         Position = { 50, 237 },
       }
+    
     elseif CurrentPage == "About" then
       graphics = {
         {
@@ -974,8 +1166,10 @@ if Controls then
         Controls.TX_Buttons, Controls.RX_Buttons = {}, {}
         Controls.TX_Labels, Controls.RX_Labels = {}, {}
         Controls.Serial_Commands, Controls.Serial_Buttons = {}, {}
+        Controls.USB_TX_Buttons, Controls.USB_RX_Buttons = {}, {}
         
         local function build_tables()
+          --[[ Video Button Control Tables ]]
           for i = 1, output_count do
             table.insert(Controls.RX_Buttons, Controls["RX_Btn_" .. i])
             table.insert(Controls.RX_Labels, Controls["RX_label_" .. i])
@@ -986,9 +1180,20 @@ if Controls then
             table.insert(Controls.TX_Labels, Controls["TX_label_" .. i])
           end
         
+          --[[ Serial Button Control Tables ]]
           for i = 1, serial_count do
             table.insert(Controls.Serial_Buttons, Controls["Serial_Btn_" .. i])
             table.insert(Controls.Serial_Commands, Controls["Serial_Str_" .. i])
+          end
+        
+        --[[ USB Button Control Tables ]]
+        --Labels are mirrored from the video routing control table. This keeps them synchronized.
+          for i = 1, output_count do
+            table.insert(Controls.USB_RX_Buttons, Controls["USB_Btn_RX_" .. i])
+          end
+        
+          for i = 1, input_count do
+            table.insert(Controls.USB_TX_Buttons, Controls["USB_Btn_TX_" .. i])
           end
         end
         
@@ -1067,6 +1272,7 @@ if Controls then
           return message_body
         end
         local function send_route()
+          -- Controls table (ie Controls.TX_Buttons) defined in the runtime/globals.lua script
           if conn.IsConnected then
             local _, input_index = table.contains(Controls.TX_Buttons, true, "Boolean")
             local input_device = Controls.TX_Labels[input_index]
@@ -1080,6 +1286,30 @@ if Controls then
                 ctl.Boolean = false
               end
             end
+            Controls.TX_Buttons[input_index].Boolean = false
+          else
+            -- TODO: Show the user this.
+            print("Not Connected")
+            return
+          end
+        end
+        
+        local function route_usb()
+          -- Controls table (ie Controls.USB_TX_Buttons) defined in the runtime/globals.lua script
+          if conn.IsConnected then
+            local _, input_index = table.contains(Controls.USB_TX_Buttons, true, "Boolean")
+            local input_device = Controls.TX_Labels[input_index]
+            local output_device
+            -- Send to each output
+            local command = "matrix usb set ".. input_device.String
+            for index, ctl in pairs(Controls.USB_RX_Buttons) do
+              if ctl.Boolean then
+                command = string.format("%s %s", command, Controls.RX_Labels[index].String )
+                ctl.Boolean = false
+              end
+            end
+            -- send TCP command
+            conn:Write(command .. " \r\n")
             Controls.TX_Buttons[input_index].Boolean = false
           else
             -- TODO: Show the user this.
@@ -1140,9 +1370,24 @@ if Controls then
           ctl.EventHandler = function()
             send_serial(ctl, index)
           end
-          
         end
         
+        for _, ctl in ipairs(Controls.USB_TX_Buttons) do
+          ctl.EventHandler =function ()
+            Utilities.exclude(ctl, Controls.USB_TX_Buttons)
+          if ctl.Boolean and table.contains(Controls.USB_RX_Buttons, true, "Boolean") then
+              route_usb()
+            end
+          end
+        end
+        
+        for _, ctl in ipairs(Controls.USB_RX_Buttons) do
+          ctl.EventHandler =function ()
+            if ctl.Boolean and table.contains(Controls.USB_TX_Buttons, true, "Boolean") then
+              route_usb()
+            end
+          end
+        end
         
         Controls.Prompt_Retrun.EventHandler = send_custom
     --INIT

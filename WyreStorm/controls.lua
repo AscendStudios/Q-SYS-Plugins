@@ -46,7 +46,7 @@ local ctrls = {
 }
 
 -- Controls --
-
+--[[ VIDEO ROUTING CONTROLS ]]--
 for i = 1, props.Transmitters.Value do
   table.insert(ctrls,
                {
@@ -93,6 +93,7 @@ table.insert(ctrls,
                UserPin = true
              })
 
+--[[ SERIAL ROUTING CONTROLS ]]--             
 for i = 1, props.Transmitters.Value do
   table.insert(ctrls,
                {
@@ -107,6 +108,29 @@ for i = 1, props.Transmitters.Value do
                  Name = "Serial_Str_" .. i,
                  ControlType = "Text",
                  PinStyle = "Input",
+                 UserPin = true
+               })
+end
+
+--[[ USB ROUTING CONTROLS ]]--
+for i = 1, props.Transmitters.Value do
+  table.insert(ctrls,
+               {
+                 Name = "USB_Btn_TX_" .. i,
+                 ControlType = "Button",
+                 ButtonType = "Toggle",
+                 PinStyle = "Both",
+                 UserPin = true
+               })
+end
+
+for i = 1, props.Receivers.Value do
+  table.insert(ctrls,
+               {
+                 Name = "USB_Btn_RX_" .. i,
+                 ControlType = "Button",
+                 ButtonType = "Toggle",
+                 PinStyle = "Both",
                  UserPin = true
                })
 end

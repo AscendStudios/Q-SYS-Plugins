@@ -31,8 +31,23 @@ for index, ctl in ipairs(Controls.Serial_Buttons) do
   ctl.EventHandler = function()
     send_serial(ctl, index)
   end
-  
 end
 
+for _, ctl in ipairs(Controls.USB_TX_Buttons) do
+  ctl.EventHandler =function ()
+    Utilities.exclude(ctl, Controls.USB_TX_Buttons)
+  if ctl.Boolean and table.contains(Controls.USB_RX_Buttons, true, "Boolean") then
+      route_usb()
+    end
+  end
+end
+
+for _, ctl in ipairs(Controls.USB_RX_Buttons) do
+  ctl.EventHandler =function ()
+    if ctl.Boolean and table.contains(Controls.USB_TX_Buttons, true, "Boolean") then
+      route_usb()
+    end
+  end
+end
 
 Controls.Prompt_Retrun.EventHandler = send_custom

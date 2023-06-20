@@ -394,6 +394,173 @@ elseif CurrentPage == "Serial" then
     Position = { 25, bottom * 25 + 125 },
     Size = { 525, 50 }
   }
+
+elseif CurrentPage == "USB" then
+  graphics = {
+    {
+      Type = "Groupbox",
+      Fill = colors.dark,
+      StrokeColor = colors.accent,
+      Color = colors.accent,
+      Position = { 25, 25 },
+      Size = { 250, input_count * 25 + 75 }
+    },
+    {
+      Type = "Header",
+      Text = "USB Transmitters",
+      HTextAlign = "Center",
+      Color = colors.accent,
+      FontSize = font_size,
+      Position = { 44, 25 },
+      Size = title_size,
+    },
+    {
+      Type = "Groupbox",
+      Fill = colors.dark,
+      StrokeColor = colors.accent,
+      Color = colors.accent,
+      Position = { 300, 25 },
+      Size = { 250, (output_count) * 25 + 75 }
+    },
+    {
+      Type = "Header",
+      Text = "USB Receivers",
+      HTextAlign = "Center",
+      Color = colors.accent,
+      FontSize = font_size,
+      Position = { 319, 25 },
+      Size = title_size,
+    },
+    {
+      Type = "Groupbox",
+      Fill = colors.dark,
+      StrokeColor = colors.accent,
+      Color = colors.accent,
+      Position = { 575, 25 },
+      Size = { 250, (input_count) * 25 + 75  }
+    },
+    {
+      Type = "Header",
+      Text = "Console",
+      HTextAlign = "Center",
+      Color = colors.accent,
+      FontSize = font_size,
+      Position = { 594, 25 },
+      Size = title_size,
+    },
+  }
+
+  for i = 1, input_count do
+    table.insert(
+      graphics,
+      {
+        Type = "Text",
+        Text = tostring(i),
+        HTextAlign = "Center",
+        FontSize = font_size,
+        Color = colors.accent,
+        Size = { 25, 25 },
+        Position = { 50, 25 * i + 50 }
+      }
+    )
+  end
+
+  for i = 1, output_count do
+    table.insert(
+      graphics,
+      {
+        Type = "Text",
+        Text = tostring(i),
+        HTextAlign = "Center",
+        FontSize = font_size,
+        Color = colors.accent,
+        Size = { 25, 25 },
+        Position = { 312, 25 * i + 50 }
+      }
+    )
+  end
+
+
+  for i = 1, input_count do
+    layout["TX_label_" .. i] = {
+      PrettyName = "USB Transmiter " .. i .. "~Name",
+      Style = "Text",
+      Color = colors.green,
+      Size = label_size,
+      Position = { 75, 25 * i + 50 },
+      Margin = 2,
+    }
+    layout["USB_Btn_TX_" .. i] = {
+      PrettyName = "USB Transmiter " .. i .. "~Select",
+      Style = "Button",
+      ButtonType = "Toggle",
+      Color = colors.accent,
+      FontColor = colors.light,
+      Size = btn_size,
+      Position = { 212, 25 * i + 50 },
+      Margin = 2,
+    }
+  end
+
+  for i = 1, output_count do
+    layout["RX_label_" .. i] = {
+      PrettyName = "USB Receiver " .. i .. "~Name",
+      Style = "Text",
+      Color = colors.orange,
+      Size = label_size,
+      Position = { 337, 25 * i + 50 },
+      Margin = 2,
+    }
+    layout["USB_Btn_RX_" .. i] = {
+      PrettyName = "Receiver " .. i .. "~Select",
+      Style = "Button",
+      ButtonType = "Toggle",
+      Color = colors.accent,
+      FontColor = colors.light,
+      Size = btn_size,
+      Position = { 475, 25 * i + 50 },
+      Margin = 2,
+    }
+  end
+
+  layout["Console"] = {
+    PrettyName = "Console Display",
+    Style = "Text",
+    HTextAlign = "Left",
+    VTextAlign = "Bottom",
+    Padding = 5,
+    FontSize = 10,
+    Position = { 600, 75 },
+    Size = { 200, (7 * 25) },
+    Color = colors.light
+  }
+  layout["Prompt"] = {
+    PrettyName = "Console Prompt",
+    Style = "Text",
+    FontSize = 10,
+    HTextAlign = "Left",
+    Position = { 600, (8 * 25) + 50 },
+    Size = { label_size[1] + 25, label_size[2] },
+    Color = colors.light,
+
+  }
+  layout["Prompt_Retrun"] = {
+    PrettyName = "Return",
+    Style = "Button",
+    Legend = "Enter",
+    FontSize = font_size,
+    Position = { 600 + label_size[1] + 25, (8 * 25) + 50 },
+    Size = btn_size,
+    Color = colors.accent,
+  }
+
+  layout["ConnectionState"] = {
+    PrettyName = "System~Online",
+    Style = "Indicator",
+    FontSize = font_size,
+    Position = { 25, bottom * 25 + 125 },
+    Size = { 525, 50 }
+  }
 elseif CurrentPage == "Config" then
   graphics = {
     {
@@ -451,6 +618,7 @@ elseif CurrentPage == "Config" then
     Size = title_size,
     Position = { 50, 237 },
   }
+
 elseif CurrentPage == "About" then
   graphics = {
     {
