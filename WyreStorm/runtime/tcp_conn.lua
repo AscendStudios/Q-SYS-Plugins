@@ -73,20 +73,22 @@ local function handle_device_status(data_message)
   local message = data_message:match("notify endpoint %p %g*")
   if message then
     local symbol, index = message:match("%p"), message:find("%p")
-    local device = string.match(message:sub(index - #message), "%g+")
-    local ctl, device_index = get_device_index(device)
-    if ctl == "tx" then
-      ctl = Controls.TX_Status[device_index]
-    elseif ctl == "rx" then
-      ctl = Controls.RX_Status[device_index]
-    end
-    if symbol == "+" and ctl then
-      ctl.Boolean = true; ctl.Color = "Chartreuse"
-    elseif symbol == "-" and ctl then
-      ctl.Boolean = false; ctl.Color = "Red"
-    else
-      logConsole("Symbol or Device Unkown: ")
-      logConsole(string.format("Symbol: %s, Device: %s", symbol, device))
+    local devices = string.split(message:sub(index - #message))
+    for device in devices do
+      local ctl, device_index = get_device_index(device)
+      if ctl == "tx" then
+        ctl = Controls.TX_Status[device_index]
+      elseif ctl == "rx" then
+        ctl = Controls.RX_Status[device_index]
+      end
+      if symbol == "+" and ctl then
+        ctl.Boolean = true; ctl.Color = "Chartreuse"
+      elseif symbol == "-" and ctl then
+        ctl.Boolean = false; ctl.Color = "Red"
+      else
+        logConsole("Symbol or Device Unkown: ")
+        logConsole(string.format("Symbol: %s, Device: %s", symbol, device))
+      end
     end
   end
 end
