@@ -12,17 +12,20 @@ Controls.TX_Buttons, Controls.RX_Buttons = {}, {}
 Controls.TX_Labels, Controls.RX_Labels = {}, {}
 Controls.Serial_Commands, Controls.Serial_Buttons = {}, {}
 Controls.USB_TX_Buttons, Controls.USB_RX_Buttons = {}, {}
+Controls.TX_Status, Controls.RX_Status = {}, {}
 
 local function build_tables()
   --[[ Video Button Control Tables ]]
   for i = 1, output_count do
     table.insert(Controls.RX_Buttons, Controls["RX_Btn_" .. i])
     table.insert(Controls.RX_Labels, Controls["RX_label_" .. i])
+    table.insert(Controls.RX_Status, Controls["RX_Status_" .. i])
   end
 
   for i = 1, input_count do
     table.insert(Controls.TX_Buttons, Controls["TX_Btn_" .. i])
     table.insert(Controls.TX_Labels, Controls["TX_label_" .. i])
+    table.insert(Controls.TX_Status, Controls["TX_Status_" .. i])
   end
 
   --[[ Serial Button Control Tables ]]

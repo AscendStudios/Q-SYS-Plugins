@@ -134,5 +134,27 @@ for i = 1, props.Receivers.Value do
                  UserPin = true
                })
 end
+--[[ STATUS LEDS ]] --
+for i = 1, props.Transmitters.Value do
+  table.insert(ctrls,
+               {
+                 Name = "TX_Status_" .. i,
+                 ControlType = "Indicator",
+                 ButtonType = "Led",
+                 PinStyle = "Both",
+                 UserPin = true
+               })
+end
+
+for i = 1, props.Receivers.Value do
+  table.insert(ctrls,
+               {
+                 Name = "RX_Status_" .. i,
+                 ControlType = "Indicator",
+                 ButtonType = "Led",
+                 PinStyle = "Both",
+                 UserPin = true
+               })
+end
 
 return ctrls

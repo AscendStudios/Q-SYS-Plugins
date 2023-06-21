@@ -6,8 +6,8 @@
 
 PluginInfo = {
   Name = "Wyrestorm Matrix Controller",
-  Version = "1.1",
-  BuildVersion = "2.1.1.0",
+  Version = "1.2",
+  BuildVersion = "3.1.0.0",
   Id = "NHD000CTL",
   Author = "Casey Compton",
   Description = "Plugin for simple routing using wyrestorm NHD devices"
@@ -247,6 +247,28 @@ function GetControls(props)
                      UserPin = true
                    })
     end
+    --[[ STATUS LEDS ]] --
+    for i = 1, props.Transmitters.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "TX_Status_" .. i,
+                     ControlType = "Indicator",
+                     ButtonType = "Led",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+    end
+    
+    for i = 1, props.Receivers.Value do
+      table.insert(ctrls,
+                   {
+                     Name = "RX_Status_" .. i,
+                     ControlType = "Indicator",
+                     ButtonType = "Led",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+    end
     
     return ctrls
 end
@@ -261,6 +283,7 @@ function GetControlLayout(props)
     local title_size = { 212, 50 }
     local btn_size = { 50, 25 }
     local label_size = { 125, 25 }
+    local led_size = {25, 25}
     
     local font_size = 16
     
@@ -271,158 +294,7 @@ function GetControlLayout(props)
       bottom = output_count + 1
     end
     
-    local CurrentPage = PageNames[props["page_index"].Value]
-    
-    if CurrentPage == "Routing" then
-      graphics = {
-        {
-          Type = "Groupbox",
-          Fill = colors.dark,
-          StrokeColor = colors.accent,
-          Color = colors.accent,
-          Position = { 25, 25 },
-          Size = { 250, props.Transmitters.Value * 25 + 75 }
-        },
-        {
-          Type = "Header",
-          Text = "Transmitters",
-          HTextAlign = "Center",
-          Color = colors.accent,
-          FontSize = font_size,
-          Position = { 44, 25 },
-          Size = title_size,
-        },
-        {
-          Type = "Groupbox",
-          Fill = colors.dark,
-          StrokeColor = colors.accent,
-          Color = colors.accent,
-          Position = { 300, 25 },
-          Size = { 250, (props.Receivers.Value + 1) * 25 + 75 }
-        },
-        {
-          Type = "Header",
-          Text = "Receivers",
-          HTextAlign = "Center",
-          Color = colors.accent,
-          FontSize = font_size,
-          Position = { 319, 25 },
-          Size = title_size,
-        },
-        {
-          Type = "Groupbox",
-          Fill = colors.dark,
-          StrokeColor = colors.accent,
-          Color = colors.accent,
-          Position = { 575, 25 },
-          Size = { 250, 8 * 25 + 75 }
-        },
-        {
-          Type = "Header",
-          Text = "Console",
-          HTextAlign = "Center",
-          Color = colors.accent,
-          FontSize = font_size,
-          Position = { 594, 25 },
-          Size = title_size,
-        },
-      }
-    
-      for i = 1, input_count do
-        table.insert(
-          graphics,
-          {
-            Type = "Text",
-            Text = tostring(i),
-            HTextAlign = "Center",
-            FontSize = font_size,
-            Color = colors.accent,
-            Size = { 25, 25 },
-            Position = { 50, 25 * i + 50 }
-          }
-        )
-      end
-    
-      for i = 1, output_count do
-        table.insert(
-          graphics,
-          {
-            Type = "Text",
-            Text = tostring(i),
-            HTextAlign = "Center",
-            FontSize = font_size,
-            Color = colors.accent,
-            Size = { 25, 25 },
-            Position = { 312, 25 * i + 50 }
-          }
-        )
-      end
-    
-      table.insert(
-        graphics,
-        {
-          Type = "Text",
-          Text = "All Receivers",
-          HTextAlign = "Center",
-          FontSize = font_size,
-          Color = colors.accent,
-          Size = label_size,
-          Position = { 337, 25 * (output_count + 1) + 50 }
-        }
-      )
-    
-      for i = 1, input_count do
-        layout["TX_label_" .. i] = {
-          PrettyName = "Transmiter " .. i .. "~Name",
-          Style = "Text",
-          Color = colors.green,
-          Size = label_size,
-          Position = { 75, 25 * i + 50 },
-          Margin = 2,
-        }
-        layout["TX_Btn_" .. i] = {
-          PrettyName = "Transmiter " .. i .. "~Select",
-          Style = "Button",
-          ButtonType = "Toggle",
-          Color = colors.accent,
-          FontColor = colors.light,
-          Size = btn_size,
-          Position = { 212, 25 * i + 50 },
-          Margin = 2,
-        }
-      end
-    
-      for i = 1, output_count do
-        layout["RX_label_" .. i] = {
-          PrettyName = "Receiver " .. i .. "~Name",
-          Style = "Text",
-          Color = colors.orange,
-          Size = label_size,
-          Position = { 337, 25 * i + 50 },
-          Margin = 2,
-        }
-        layout["RX_Btn_" .. i] = {
-          PrettyName = "Receiver " .. i .. "~Select",
-          Style = "Button",
-          ButtonType = "Toggle",
-          Color = colors.accent,
-          FontColor = colors.light,
-          Size = btn_size,
-          Position = { 475, 25 * i + 50 },
-          Margin = 2,
-        }
-        layout["RX_All"] = {
-          PrettyName = "Receiver All~Select",
-          Style = "Button",
-          ButtonType = "Toggle",
-          Color = colors.accent,
-          FontColor = colors.light,
-          Size = btn_size,
-          Position = { 475, 25 * (output_count + 1) + 50 },
-          Margin = 2,
-        }
-      end
-    
+    local function generate_console()
       layout["Console"] = {
         PrettyName = "Console Display",
         Style = "Text",
@@ -461,6 +333,192 @@ function GetControlLayout(props)
         Position = { 25, bottom * 25 + 125 },
         Size = { 525, 50 }
       }
+    end
+    
+    local function generate_groups()
+      graphics = {
+        { -- TRANSMITTER BOX
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 25, 25 },
+          Size = { 250, props.Transmitters.Value * 25 + 75 }
+        },
+    
+        { -- RECEIVER BOX
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 300, 25 },
+          Size = { 250, (props.Receivers.Value + 1) * 25 + 75 }
+        },
+    
+        { --CONSOLE BOX
+          Type = "Groupbox",
+          Fill = colors.dark,
+          StrokeColor = colors.accent,
+          Color = colors.accent,
+          Position = { 575, 25 },
+          Size = { 250, 8 * 25 + 75 }
+        },
+    }
+    end
+    
+    local CurrentPage = PageNames[props["page_index"].Value]
+    
+    if CurrentPage == "Routing" then
+        generate_groups()
+    
+        --[[ HEADERS ]]--
+        table.insert(graphics,
+        {
+          Type = "Header",
+          Text = "Transmitters",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 44, 25 },
+          Size = title_size,
+        }
+      )
+      table.insert(graphics,
+        {
+          Type = "Header",
+          Text = "Receivers",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 319, 25 },
+          Size = title_size,
+        }
+      )
+      table.insert(graphics,
+        {
+          Type = "Header",
+          Text = "Console",
+          HTextAlign = "Center",
+          Color = colors.accent,
+          FontSize = font_size,
+          Position = { 594, 25 },
+          Size = title_size,
+        }
+      )
+      -- TRANSMITTER Numbers
+      for i = 1, input_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 37, 25 * i + 50 }
+          }
+        )
+      end
+    
+      -- Receiver Numbers
+      for i = 1, output_count do
+        table.insert(
+          graphics,
+          {
+            Type = "Text",
+            Text = tostring(i),
+            HTextAlign = "Center",
+            FontSize = font_size,
+            Color = colors.accent,
+            Size = { 25, 25 },
+            Position = { 312, 25 * i + 50 }
+          }
+        )
+      end
+    
+      table.insert(
+        graphics,
+        {
+          Type = "Text",
+          Text = "All Receivers",
+          HTextAlign = "Center",
+          FontSize = font_size,
+          Color = colors.accent,
+          Size = label_size,
+          Position = { 337, 25 * (output_count + 1) + 50 }
+        }
+      )
+    
+      for i = 1, input_count do
+        layout["TX_label_" .. i] = {
+          PrettyName = "Transmiter " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.green,
+          Size = label_size,
+          Position = { 62, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["TX_Btn_" .. i] = {
+          PrettyName = "Transmiter " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 200, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["TX_Status_" .. i] = {
+          PrettyName = "Transmiter  " .. i .. "~Status",
+          Style = "Led",
+          Size = led_size,
+          Margin = 8,
+          Position = {247, 25 * i + 50}
+        }
+      end
+    
+      for i = 1, output_count do
+        layout["RX_label_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Name",
+          Style = "Text",
+          Color = colors.orange,
+          Size = label_size,
+          Position = { 337, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["RX_Btn_" .. i] = {
+          PrettyName = "Receiver " .. i .. "~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * i + 50 },
+          Margin = 2,
+        }
+        layout["RX_All"] = {
+          PrettyName = "Receiver All~Select",
+          Style = "Button",
+          ButtonType = "Toggle",
+          Color = colors.accent,
+          FontColor = colors.light,
+          Size = btn_size,
+          Position = { 475, 25 * (output_count + 1) + 50 },
+          Margin = 2,
+        }
+      end
+    
+      for i = 1, output_count do
+        layout["RX_Status_" .. i] = {
+          PrettyName = "Receiver  " .. i .. "~Status",
+          Style = "Led",
+          Size = led_size,
+          Margin = 8,
+          Position = {522, 25 * i + 50}
+        }
+      end
+      generate_console()
     elseif CurrentPage == "Serial" then
       graphics = {
         {
@@ -526,7 +584,7 @@ function GetControlLayout(props)
             FontSize = font_size,
             Color = colors.accent,
             Size = { 25, 25 },
-            Position = { 50, 25 * i + 50 }
+            Position = { 37, 25 * i + 50 }
           }
         )
       end
@@ -565,7 +623,7 @@ function GetControlLayout(props)
           Style = "Text",
           Color = colors.pink,
           Size = label_size,
-          Position = { 75, 25 * i + 50 },
+          Position = { 62, 25 * i + 50 },
           Margin = 2,
         }
         layout["Serial_Btn_" .. i] = {
@@ -575,7 +633,7 @@ function GetControlLayout(props)
           Color = colors.accent,
           FontColor = colors.light,
           Size = btn_size,
-          Position = { 212, 25 * i + 50 },
+          Position = { 200, 25 * i + 50 },
           Margin = 2,
         }
       end
@@ -599,6 +657,17 @@ function GetControlLayout(props)
           Position = { 475, 25 * i + 50 },
           Margin = 2,
         }
+    
+        for i = 1, output_count do
+          layout["RX_Status_" .. i] = {
+            PrettyName = "Receiver  " .. i .. "~Status",
+            Style = "Led",
+            Size = led_size,
+            Margin = 8,
+            Position = {522, 25 * i + 50}
+          }
+        end
+    
         layout["RX_All"] = {
           PrettyName = "Receiver All~Select",
           Style = "Button",
@@ -611,44 +680,7 @@ function GetControlLayout(props)
         }
       end
     
-      layout["Console"] = {
-        PrettyName = "Console Display",
-        Style = "Text",
-        HTextAlign = "Left",
-        VTextAlign = "Bottom",
-        Padding = 5,
-        FontSize = 10,
-        Position = { 600, 75 },
-        Size = { 200, (7 * 25) },
-        Color = colors.light
-      }
-      layout["Prompt"] = {
-        PrettyName = "Console Prompt",
-        Style = "Text",
-        FontSize = 10,
-        HTextAlign = "Left",
-        Position = { 600, (8 * 25) + 50 },
-        Size = { label_size[1] + 25, label_size[2] },
-        Color = colors.light,
-    
-      }
-      layout["Prompt_Retrun"] = {
-        PrettyName = "Return",
-        Style = "Button",
-        Legend = "Enter",
-        FontSize = font_size,
-        Position = { 600 + label_size[1] + 25, (8 * 25) + 50 },
-        Size = btn_size,
-        Color = colors.accent,
-      }
-    
-      layout["ConnectionState"] = {
-        PrettyName = "System~Online",
-        Style = "Indicator",
-        FontSize = font_size,
-        Position = { 25, bottom * 25 + 125 },
-        Size = { 525, 50 }
-      }
+    generate_console()
     
     elseif CurrentPage == "USB" then
       graphics = {
@@ -715,7 +747,7 @@ function GetControlLayout(props)
             FontSize = font_size,
             Color = colors.accent,
             Size = { 25, 25 },
-            Position = { 50, 25 * i + 50 }
+            Position = { 37, 25 * i + 50 }
           }
         )
       end
@@ -742,7 +774,7 @@ function GetControlLayout(props)
           Style = "Text",
           Color = colors.green,
           Size = label_size,
-          Position = { 75, 25 * i + 50 },
+          Position = { 62, 25 * i + 50 },
           Margin = 2,
         }
         layout["USB_Btn_TX_" .. i] = {
@@ -752,8 +784,15 @@ function GetControlLayout(props)
           Color = colors.accent,
           FontColor = colors.light,
           Size = btn_size,
-          Position = { 212, 25 * i + 50 },
+          Position = { 200, 25 * i + 50 },
           Margin = 2,
+        }
+        layout["TX_Status_" .. i] = {
+          PrettyName = "Transmiter  " .. i .. "~Status",
+          Style = "Led",
+          Size = led_size,
+          Margin = 8,
+          Position = {247, 25 * i + 50}
         }
       end
     
@@ -776,46 +815,15 @@ function GetControlLayout(props)
           Position = { 475, 25 * i + 50 },
           Margin = 2,
         }
+        layout["RX_Status_" .. i] = {
+          PrettyName = "Receiver  " .. i .. "~Status",
+          Style = "Led",
+          Size = led_size,
+          Margin = 8,
+          Position = {522, 25 * i + 50}
+        }
       end
-    
-      layout["Console"] = {
-        PrettyName = "Console Display",
-        Style = "Text",
-        HTextAlign = "Left",
-        VTextAlign = "Bottom",
-        Padding = 5,
-        FontSize = 10,
-        Position = { 600, 75 },
-        Size = { 200, (7 * 25) },
-        Color = colors.light
-      }
-      layout["Prompt"] = {
-        PrettyName = "Console Prompt",
-        Style = "Text",
-        FontSize = 10,
-        HTextAlign = "Left",
-        Position = { 600, (8 * 25) + 50 },
-        Size = { label_size[1] + 25, label_size[2] },
-        Color = colors.light,
-    
-      }
-      layout["Prompt_Retrun"] = {
-        PrettyName = "Return",
-        Style = "Button",
-        Legend = "Enter",
-        FontSize = font_size,
-        Position = { 600 + label_size[1] + 25, (8 * 25) + 50 },
-        Size = btn_size,
-        Color = colors.accent,
-      }
-    
-      layout["ConnectionState"] = {
-        PrettyName = "System~Online",
-        Style = "Indicator",
-        FontSize = font_size,
-        Position = { 25, bottom * 25 + 125 },
-        Size = { 525, 50 }
-      }
+      generate_console()
     elseif CurrentPage == "Config" then
       graphics = {
         {
@@ -1167,17 +1175,20 @@ if Controls then
         Controls.TX_Labels, Controls.RX_Labels = {}, {}
         Controls.Serial_Commands, Controls.Serial_Buttons = {}, {}
         Controls.USB_TX_Buttons, Controls.USB_RX_Buttons = {}, {}
+        Controls.TX_Status, Controls.RX_Status = {}, {}
         
         local function build_tables()
           --[[ Video Button Control Tables ]]
           for i = 1, output_count do
             table.insert(Controls.RX_Buttons, Controls["RX_Btn_" .. i])
             table.insert(Controls.RX_Labels, Controls["RX_label_" .. i])
+            table.insert(Controls.RX_Status, Controls["RX_Status_" .. i])
           end
         
           for i = 1, input_count do
             table.insert(Controls.TX_Buttons, Controls["TX_Btn_" .. i])
             table.insert(Controls.TX_Labels, Controls["TX_label_" .. i])
+            table.insert(Controls.TX_Status, Controls["TX_Status_" .. i])
           end
         
           --[[ Serial Button Control Tables ]]
@@ -1261,10 +1272,41 @@ if Controls then
         end
         
         -- Data Handling --
+        local function get_device_index(device_id)
+          local tx, tx_index = table.contains(Controls.TX_Labels, device_id, "String")
+          local rx, rx_index = table.contains(Controls.RX_Labels, device_id, "String")
+          local ctl
+          if tx then ctl = "tx" elseif rx then ctl = "rx" end
+          return ctl, tx_index or rx_index
+        end
+        
+        local function handle_device_status(data_message)
+          local message = data_message:match("notify endpoint %p %g*")
+          if message then
+            local symbol, index = message:match("%p"), message:find("%p")
+            local device = string.match(message:sub(index - #message), "%g+")
+            local ctl, device_index = get_device_index(device)
+            if ctl == "tx" then
+              ctl = Controls.TX_Status[device_index]
+            elseif ctl == "rx" then
+              ctl = Controls.RX_Status[device_index]
+            end
+            if symbol == "+" and ctl then
+              ctl.Boolean = true; ctl.Color = "Chartreuse"
+            elseif symbol == "-" and ctl then
+              ctl.Boolean = false; ctl.Color = "Red"
+            else
+              logConsole("Symbol or Device Unkown: ")
+              logConsole(string.format("Symbol: %s, Device: %s", symbol, device))
+            end
+          end
+        end
+        
         conn.Data = function()
           local message_line = conn:ReadLine(TcpSocket.EOL.Any)
           local message_body = ''
           while (message_line ~= nil) do  -- While there is data, append each line to message body
+            handle_device_status(message_line)
             message_body = message_body .. '\n' .. message_line
             message_line = conn:ReadLine(TcpSocket.EOL.Any)
           end
@@ -1288,7 +1330,6 @@ if Controls then
             end
             Controls.TX_Buttons[input_index].Boolean = false
           else
-            -- TODO: Show the user this.
             print("Not Connected")
             return
           end
@@ -1312,7 +1353,6 @@ if Controls then
             conn:Write(command .. " \r\n")
             Controls.TX_Buttons[input_index].Boolean = false
           else
-            -- TODO: Show the user this.
             print("Not Connected")
             return
           end

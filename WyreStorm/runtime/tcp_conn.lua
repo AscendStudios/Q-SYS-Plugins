@@ -61,10 +61,41 @@ conn.Timeout = function(_conn, err)
 end
 
 -- Data Handling --
+local function get_device_index(device_id)
+  local tx, tx_index = table.contains(Controls.TX_Labels, device_id, "String")
+  local rx, rx_index = table.contains(Controls.RX_Labels, device_id, "String")
+  local ctl
+  if tx then ctl = "tx" elseif rx then ctl = "rx" end
+  return ctl, tx_index or rx_index
+end
+
+local function handle_device_status(data_message)
+  local message = data_message:match("notify endpoint %p %g*")
+  if message then
+    local symbol, index = message:match("%p"), message:find("%p")
+    local device = string.match(message:sub(index - #message), "%g+")
+    local ctl, device_index = get_device_index(device)
+    if ctl == "tx" then
+      ctl = Controls.TX_Status[device_index]
+    elseif ctl == "rx" then
+      ctl = Controls.RX_Status[device_index]
+    end
+    if symbol == "+" and ctl then
+      ctl.Boolean = true; ctl.Color = "Chartreuse"
+    elseif symbol == "-" and ctl then
+      ctl.Boolean = false; ctl.Color = "Red"
+    else
+      logConsole("Symbol or Device Unkown: ")
+      logConsole(string.format("Symbol: %s, Device: %s", symbol, device))
+    end
+  end
+end
+
 conn.Data = function()
   local message_line = conn:ReadLine(TcpSocket.EOL.Any)
   local message_body = ''
   while (message_line ~= nil) do  -- While there is data, append each line to message body
+    handle_device_status(message_line)
     message_body = message_body .. '\n' .. message_line
     message_line = conn:ReadLine(TcpSocket.EOL.Any)
   end
