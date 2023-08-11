@@ -193,7 +193,7 @@ if CurrentPage == "Routing" then
       Margin = 2,
     }
     layout["TX_Status_" .. i] = {
-      PrettyName = "Transmiter  " .. i .. "~Status",
+      PrettyName = "Transmiter " .. i .. "~Status",
       Style = "Led",
       Size = led_size,
       Margin = 8,
@@ -234,7 +234,7 @@ if CurrentPage == "Routing" then
 
   for i = 1, output_count do
     layout["RX_Status_" .. i] = {
-      PrettyName = "Receiver  " .. i .. "~Status",
+      PrettyName = "Receiver " .. i .. "~Status",
       Style = "Led",
       Size = led_size,
       Margin = 8,
@@ -383,7 +383,7 @@ elseif CurrentPage == "Serial" then
 
     for i = 1, output_count do
       layout["RX_Status_" .. i] = {
-        PrettyName = "Receiver  " .. i .. "~Status",
+        PrettyName = "Receiver " .. i .. "~Status",
         Style = "Led",
         Size = led_size,
         Margin = 8,
@@ -493,7 +493,7 @@ elseif CurrentPage == "USB" then
 
   for i = 1, input_count do
     layout["TX_label_" .. i] = {
-      PrettyName = "USB Transmiter " .. i .. "~Name",
+      PrettyName = "Transmiter " .. i .. "~USB Name",
       Style = "Text",
       Color = colors.green,
       Size = label_size,
@@ -501,7 +501,7 @@ elseif CurrentPage == "USB" then
       Margin = 2,
     }
     layout["USB_Btn_TX_" .. i] = {
-      PrettyName = "USB Transmiter " .. i .. "~Select",
+      PrettyName = "Transmiter " .. i .. "~USB Select",
       Style = "Button",
       ButtonType = "Toggle",
       Color = colors.accent,
@@ -511,7 +511,7 @@ elseif CurrentPage == "USB" then
       Margin = 2,
     }
     layout["TX_Status_" .. i] = {
-      PrettyName = "Transmiter  " .. i .. "~Status",
+      PrettyName = "Transmiter " .. i .. "~Status",
       Style = "Led",
       Size = led_size,
       Margin = 8,
@@ -521,7 +521,7 @@ elseif CurrentPage == "USB" then
 
   for i = 1, output_count do
     layout["RX_label_" .. i] = {
-      PrettyName = "USB Receiver " .. i .. "~Name",
+      PrettyName = "Receiver " .. i .. "~USB Name",
       Style = "Text",
       Color = colors.orange,
       Size = label_size,
@@ -529,7 +529,7 @@ elseif CurrentPage == "USB" then
       Margin = 2,
     }
     layout["USB_Btn_RX_" .. i] = {
-      PrettyName = "Receiver " .. i .. "~Select",
+      PrettyName = "Receiver " .. i .. "~USB Select",
       Style = "Button",
       ButtonType = "Toggle",
       Color = colors.accent,
@@ -539,7 +539,7 @@ elseif CurrentPage == "USB" then
       Margin = 2,
     }
     layout["RX_Status_" .. i] = {
-      PrettyName = "Receiver  " .. i .. "~Status",
+      PrettyName = "Receiver " .. i .. "~Status",
       Style = "Led",
       Size = led_size,
       Margin = 8,

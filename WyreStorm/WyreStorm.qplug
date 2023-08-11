@@ -7,7 +7,7 @@
 PluginInfo = {
   Name = "Wyrestorm Matrix Controller",
   Version = "1.2",
-  BuildVersion = "3.2.0.0",
+  BuildVersion = "3.2.1.2",
   Id = "NHD000CTL",
   Author = "Casey Compton",
   Description = "Plugin for simple routing using wyrestorm NHD devices"
@@ -84,7 +84,7 @@ function GetProperties()
             Min = 0,
             Max = 25,
             Value = 2
-        }
+        },
     
     }
     return props
@@ -159,8 +159,10 @@ function GetControls(props)
     }
     
     -- Controls --
-    --[[ VIDEO ROUTING CONTROLS ]]--
+    
     for i = 1, props.Transmitters.Value do
+      --[[ VIDEO ROUTING CONTROLS ]]
+      --
       table.insert(ctrls,
                    {
                      Name = "TX_Btn_" .. i,
@@ -176,9 +178,48 @@ function GetControls(props)
                      PinStyle = "Input",
                      UserPin = true
                    })
+      --[[ SERIAL ROUTING CONTROLS ]]
+      --
+      table.insert(ctrls,
+                   {
+                     Name = "Serial_Btn_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Momentary",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+      table.insert(ctrls,
+                   {
+                     Name = "Serial_Str_" .. i,
+                     ControlType = "Text",
+                     PinStyle = "Input",
+                     UserPin = true
+                   })
+      --[[ USB ROUTING CONTROLS ]]
+      --
+      table.insert(ctrls,
+                   {
+                     Name = "USB_Btn_TX_" .. i,
+                     ControlType = "Button",
+                     ButtonType = "Toggle",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
+      --[[ STATUS LEDS ]]
+      --
+      table.insert(ctrls,
+                   {
+                     Name = "TX_Status_" .. i,
+                     ControlType = "Indicator",
+                     ButtonType = "Led",
+                     PinStyle = "Both",
+                     UserPin = true
+                   })
     end
     
     for i = 1, props.Receivers.Value do
+      --[[ VIDEO ROUTING CONTROLS ]]
+      --
       table.insert(ctrls,
                    {
                      Name = "RX_Btn_" .. i,
@@ -195,49 +236,8 @@ function GetControls(props)
                      PinStyle = "Input",
                      UserPin = true
                    })
-    end
-    
-    table.insert(ctrls,
-                 {
-                   Name = "RX_All",
-                   ControlType = "Button",
-                   ButtonType = "Toggle",
-                   PinStyle = "Both",
-                   UserPin = true
-                 })
-    
-    --[[ SERIAL ROUTING CONTROLS ]]--             
-    for i = 1, props.Transmitters.Value do
-      table.insert(ctrls,
-                   {
-                     Name = "Serial_Btn_" .. i,
-                     ControlType = "Button",
-                     ButtonType = "Momentary",
-                     PinStyle = "Both",
-                     UserPin = true
-                   })
-      table.insert(ctrls,
-                   {
-                     Name = "Serial_Str_" .. i,
-                     ControlType = "Text",
-                     PinStyle = "Input",
-                     UserPin = true
-                   })
-    end
-    
-    --[[ USB ROUTING CONTROLS ]]--
-    for i = 1, props.Transmitters.Value do
-      table.insert(ctrls,
-                   {
-                     Name = "USB_Btn_TX_" .. i,
-                     ControlType = "Button",
-                     ButtonType = "Toggle",
-                     PinStyle = "Both",
-                     UserPin = true
-                   })
-    end
-    
-    for i = 1, props.Receivers.Value do
+      --[[ USB ROUTING CONTROLS ]]
+      --
       table.insert(ctrls,
                    {
                      Name = "USB_Btn_RX_" .. i,
@@ -246,20 +246,8 @@ function GetControls(props)
                      PinStyle = "Both",
                      UserPin = true
                    })
-    end
-    --[[ STATUS LEDS ]] --
-    for i = 1, props.Transmitters.Value do
-      table.insert(ctrls,
-                   {
-                     Name = "TX_Status_" .. i,
-                     ControlType = "Indicator",
-                     ButtonType = "Led",
-                     PinStyle = "Both",
-                     UserPin = true
-                   })
-    end
-    
-    for i = 1, props.Receivers.Value do
+      --[[ STATUS LEDS ]]
+      --
       table.insert(ctrls,
                    {
                      Name = "RX_Status_" .. i,
@@ -270,6 +258,14 @@ function GetControls(props)
                    })
     end
     
+    table.insert(ctrls,
+                 {
+                   Name = "RX_All",
+                   ControlType = "Button",
+                   ButtonType = "Toggle",
+                   PinStyle = "Both",
+                   UserPin = true
+                 })
     return ctrls
 end
 
@@ -470,7 +466,7 @@ function GetControlLayout(props)
           Margin = 2,
         }
         layout["TX_Status_" .. i] = {
-          PrettyName = "Transmiter  " .. i .. "~Status",
+          PrettyName = "Transmiter " .. i .. "~Status",
           Style = "Led",
           Size = led_size,
           Margin = 8,
@@ -511,7 +507,7 @@ function GetControlLayout(props)
     
       for i = 1, output_count do
         layout["RX_Status_" .. i] = {
-          PrettyName = "Receiver  " .. i .. "~Status",
+          PrettyName = "Receiver " .. i .. "~Status",
           Style = "Led",
           Size = led_size,
           Margin = 8,
@@ -660,7 +656,7 @@ function GetControlLayout(props)
     
         for i = 1, output_count do
           layout["RX_Status_" .. i] = {
-            PrettyName = "Receiver  " .. i .. "~Status",
+            PrettyName = "Receiver " .. i .. "~Status",
             Style = "Led",
             Size = led_size,
             Margin = 8,
@@ -770,7 +766,7 @@ function GetControlLayout(props)
     
       for i = 1, input_count do
         layout["TX_label_" .. i] = {
-          PrettyName = "USB Transmiter " .. i .. "~Name",
+          PrettyName = "Transmiter " .. i .. "~USB Name",
           Style = "Text",
           Color = colors.green,
           Size = label_size,
@@ -778,7 +774,7 @@ function GetControlLayout(props)
           Margin = 2,
         }
         layout["USB_Btn_TX_" .. i] = {
-          PrettyName = "USB Transmiter " .. i .. "~Select",
+          PrettyName = "Transmiter " .. i .. "~USB Select",
           Style = "Button",
           ButtonType = "Toggle",
           Color = colors.accent,
@@ -788,7 +784,7 @@ function GetControlLayout(props)
           Margin = 2,
         }
         layout["TX_Status_" .. i] = {
-          PrettyName = "Transmiter  " .. i .. "~Status",
+          PrettyName = "Transmiter " .. i .. "~Status",
           Style = "Led",
           Size = led_size,
           Margin = 8,
@@ -798,7 +794,7 @@ function GetControlLayout(props)
     
       for i = 1, output_count do
         layout["RX_label_" .. i] = {
-          PrettyName = "USB Receiver " .. i .. "~Name",
+          PrettyName = "Receiver " .. i .. "~USB Name",
           Style = "Text",
           Color = colors.orange,
           Size = label_size,
@@ -806,7 +802,7 @@ function GetControlLayout(props)
           Margin = 2,
         }
         layout["USB_Btn_RX_" .. i] = {
-          PrettyName = "Receiver " .. i .. "~Select",
+          PrettyName = "Receiver " .. i .. "~USB Select",
           Style = "Button",
           ButtonType = "Toggle",
           Color = colors.accent,
@@ -816,7 +812,7 @@ function GetControlLayout(props)
           Margin = 2,
         }
         layout["RX_Status_" .. i] = {
-          PrettyName = "Receiver  " .. i .. "~Status",
+          PrettyName = "Receiver " .. i .. "~Status",
           Style = "Led",
           Size = led_size,
           Margin = 8,

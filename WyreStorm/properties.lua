@@ -37,7 +37,7 @@ local props = {
         Min = 0,
         Max = 25,
         Value = 2
-    }
+    },
 
 }
 return props
