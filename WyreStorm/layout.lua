@@ -7,6 +7,11 @@ local title_size = { 212, 50 }
 local btn_size = { 50, 25 }
 local label_size = { 125, 25 }
 local led_size = {25, 25}
+local image_w, image_h = 264, 222
+---@diagnostic disable-next-line: unknown-diag-code
+---@diagnostic disable-next-line: undefined-global
+local logo = "--[[ #encode "Assets/ASLogo.png" ]]"
+local w, h, tol = 150, 50, 25
 
 local font_size = 16
 
@@ -606,108 +611,181 @@ elseif CurrentPage == "Config" then
   }
 
 elseif CurrentPage == "About" then
+
   graphics = {
     {
-      Type = "Header",
-      Text = "About",
-      Size = title_size,
-      HTextAlign = "Center",
-      FontSize = font_size,
-      Position = { 50, 5 },
-      Color = colors.medium
+    Type="Image",
+    Image=logo,
+    Position={tol,tol},
+    Size={image_w,image_h}
     },
     {
-      Type = "Textbox",
-      Text = "Name",
-      Size = { 75, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 50, 50 },
-      Color = colors.medium
+    Type = "GroupBox",
+    Position={tol+image_w,tol},
+    Size={image_w+tol*3,image_h},
+    Fill = colors.light,
+    StrokeWidth = 1,
+  },
+  {
+    Type = "Text",
+    Text = "Ascend Studios",
+    Size = {w*2,h},
+    Position = {tol*2 +image_w, tol},
+    FontSize = 24,
+    HTextAlign = "Left"
+  },
+  {
+        Type = "Text",
+        Text = "Name: \t\t"..PluginInfo.Name,
+        Size = {w*2,h/2},
+        Position = {tol*2 +image_w, (tol*2)+(h/2)},
+        -- FontSize = fonts.small,
+        HTextAlign = "Left"
     },
     {
-      Type = "Textbox",
-      Text = "Version",
-      Size = { 75, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 50, 75 },
-      Color = colors.medium
-    },
-    {
-      Type = "Textbox",
-      Text = "Build",
-      Size = { 75, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 50, 100 },
-      Color = colors.medium
-    },
-    {
-      Type = "Textbox",
-      Text = "Author",
-      Size = { 75, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 50, 125 },
-      Color = colors.medium
-    },
-    {
-      Type = "Textbox",
-      Text = "Description",
-      Size = { 75, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 50, 150 },
-      Color = colors.medium
-    },
-    {
-      Type = "Textbox",
-      Text = PluginInfo.Name,
-      Size = { 200, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 125, 50 },
-      Color = colors.dark
-    },
-    {
-      Type = "Textbox",
-      Text = PluginInfo.Version,
-      Size = { 200, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 125, 75 },
-      Color = colors.dark
-    },
-    {
-      Type = "Textbox",
-      Text = PluginInfo.BuildVersion,
-      Size = { 200, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 125, 100 },
-      Color = colors.dark
-    },
-    {
-      Type = "Textbox",
-      Text = PluginInfo.Author,
-      Size = { 200, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 125, 125 },
-      Color = colors.dark
-    },
-    {
-      Type = "Textbox",
-      Text = PluginInfo.Description,
-      Size = { 200, 25 },
-      VTextAlign = "Top",
-      HTextAlign = "Left",
-      Position = { 125, 150 },
-      Color = colors.dark
+        Type = "Text",
+        Text = "Version: \t\t"..PluginInfo.Version,
+        Size = {w*2,h/2},
+        Position = {tol*2 +image_w, (tol*2)+(h/2)*2},
+        -- FontSize = fonts.small,
+        HTextAlign = "Left"
     },
 
-    -- TODO: Add an logo image
+    {
+        Type = "Text",
+        Text = "Build: \t\t"..PluginInfo.BuildVersion,
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*3},
+        -- FontSize = fonts.small,
+        HTextAlign = "Left"
+    },
+    {
+        Type = "Text",
+        Text = "Author: \t\t"..PluginInfo.Author,
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*4},
+        -- FontSize = fonts.small,
+        HTextAlign = "Left"
+    },
+    {
+        Type = "Text",
+        Text = "Email: \t\tSupport@AscendStudios.com",
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*5},
+        -- FontSize = fonts.small,
+        HTextAlign = "Left"
+    },
+    {
+        Type = "Text",
+        Text = "https://github.com/AscendStudios/Q-SYS-Plugins",
+        Size = {w*2,h/2},
+        Position = {tol*2+image_w, (tol*2)+(h/2)*6},
+        Style = "Italic",
+        -- FontSize = fonts.small,
+        HTextAlign = "Left",
+    },
+
+
+
+    -- {
+    --   Type = "Header",
+    --   Text = "About",
+    --   Size = title_size,
+    --   HTextAlign = "Center",
+    --   FontSize = font_size,
+    --   Position = { 50, 5 },
+    --   Color = colors.medium
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = "Name",
+    --   Size = { 75, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 50, 50 },
+    --   Color = colors.medium
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = "Version",
+    --   Size = { 75, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 50, 75 },
+    --   Color = colors.medium
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = "Build",
+    --   Size = { 75, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 50, 100 },
+    --   Color = colors.medium
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = "Author",
+    --   Size = { 75, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 50, 125 },
+    --   Color = colors.medium
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = "Description",
+    --   Size = { 75, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 50, 150 },
+    --   Color = colors.medium
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = PluginInfo.Name,
+    --   Size = { 200, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 125, 50 },
+    --   Color = colors.dark
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = PluginInfo.Version,
+    --   Size = { 200, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 125, 75 },
+    --   Color = colors.dark
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = PluginInfo.BuildVersion,
+    --   Size = { 200, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 125, 100 },
+    --   Color = colors.dark
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = PluginInfo.Author,
+    --   Size = { 200, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 125, 125 },
+    --   Color = colors.dark
+    -- },
+    -- {
+    --   Type = "Textbox",
+    --   Text = PluginInfo.Description,
+    --   Size = { 200, 25 },
+    --   VTextAlign = "Top",
+    --   HTextAlign = "Left",
+    --   Position = { 125, 150 },
+    --   Color = colors.dark
+    -- },
 
   }
 end

@@ -20,7 +20,8 @@
     "output_count",
     "input_count",
     "Utilities",
-    "build_tables"
+    "build_tables",
+    "conn"
   ],
   "Lua.completion.autoRequire": false
 }
