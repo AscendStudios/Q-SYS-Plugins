@@ -7,8 +7,8 @@
 -- Information block for the plugin
 PluginInfo = {
   Name = "Page Navigation",
-  Version = "1.0",
-  BuildVersion = "0.5.0.0",
+  Version = "1.1",
+  BuildVersion = "1.0.0.0",
   Id = "PageNavigation",
   Author = "Casey Compton",
   Description = "Plugin for full page navigation within Q-SYS control devices"
@@ -736,15 +736,15 @@ if Controls then
     
   
   function MakeExclusive(ArrayOfCtrls)
-      for i , v in pairs(ArrayOfCtrls) do
-        local oldEH = v.EventHandler or function() end
-        v.EventHandler = function()
-          for x,y in pairs(ArrayOfCtrls) do
-            y.Boolean = x == i
-          end
-          oldEH()
+    for i, v in pairs(ArrayOfCtrls) do
+      local oldEH = v.EventHandler or function() end
+      v.EventHandler = function()
+        for x, y in pairs(ArrayOfCtrls) do
+          y.Boolean = x == i
         end
+        oldEH()
       end
+    end
   end
   
   ------------------------------------------
@@ -782,21 +782,21 @@ if Controls then
         local list = {}
         for _, component in ipairs(Component.GetComponents()) do
             if table.contains(inventory.controlDevices, component.Type) then
-            table.insert(list, component.Name)
+                table.insert(list, component.Name)
             end
         end
         return list
     end
     
     local function isReadOnly(attribute)
-    --attribute should be a table for the component control
-    return attribute.Direction == "Read Only"
+        --attribute should be a table for the component control
+        return attribute.Direction == "Read Only"
     end
     
     local function isDynamic(panel)
         for _, t in pairs(Component.GetControls(panel)) do
             if table.contains(t, "current.uci") then
-                return not isReadOnly(t)  -- t is the attribute table that contains the current.uci control. 
+                return not isReadOnly(t)  -- t is the attribute table that contains the current.uci control.
             end
         end
     end
@@ -816,19 +816,31 @@ if Controls then
     local function updateStatusDevice()
         if PANEL_STATUS ~= nil then PANEL_STATUS.EventHandler = function() end end
         PANEL_STATUS = Status(Controls.panelSelection.String)
-        PANEL_STATUS.EventHandler = function( ctl )
+        PANEL_STATUS.EventHandler = function(ctl)
             Controls.panelStatus.String = ctl.String
         end
         Controls.panelStatus.String = PANEL_STATUS.String
     end
     
+    local function update_page_buttons(selection)
+        for index, label in ipairs(Controls.pageLabel) do
+            if label.String == selection then
+                Controls.pageButton[index].Boolean = true
+            else
+                Controls.pageButton[index].Boolean = false
+            end
+        end
+    end
+    
     local function set_page(page_name)
         if table.contains(Controls.pageSelection.Choices, page_name) then
-            Controls.pageSelection.String = page_name           --Update the plugin dropdown
-            Pages(Controls.panelSelection.String).String = page_name   --Update the actual panel
+            Controls.pageSelection.String = page_name                 --Update the plugin dropdown
+            Pages(Controls.panelSelection.String).String = page_name  --Update the actual panel
         else
             Controls.pinDisplay.String = "Error PNF"
-            Timer.CallAfter( function() PIN = ''; Controls.pinDisplay.String = '' end, 2)
+            Timer.CallAfter(function()
+                                PIN = ''; Controls.pinDisplay.String = ''
+                            end, 2)
             Log.Error(string.format(
                 "PAGE LOADING ERROR: \t Page: %s is not found on Panel: %s",
                 page_name,
@@ -839,32 +851,33 @@ if Controls then
     ---------------------------------------------------------------------------
     -- PIN LOGIC
     ---------------------------------------------------------------------------
-    local function output_pin( ctl, num )
+    local function output_pin(ctl, num)
         if num == 10 then num = 0 end
         if ctl.Boolean then
-            PIN = PIN..num
+            PIN = PIN .. num
             Controls.pinDisplay.String = string.rep("*", #PIN)
         end
     end
     
-    local function clear_pin( ctl )
+    local function clear_pin(ctl)
         if ctl.Boolean then
             PIN = ''; Controls.pinDisplay.String = ''
         end
     end
     
-    local function backspace_pin( ctl )
+    local function backspace_pin(ctl)
         if ctl.Boolean then
-            PIN = PIN:sub(1, #PIN -1)
+            PIN = PIN:sub(1, #PIN - 1)
             Controls.pinDisplay.String = string.rep("*", #PIN)
         end
     end
     
-    local function enter_pin( ctl )
-    
+    local function enter_pin(ctl)
         local function incorrect()
             Controls.pinDisplay.String = 'INCORRECT'; Timer.CallAfter(
-                function() Controls.pinDisplay.String = ''; PIN = '' end,
+                function()
+                    Controls.pinDisplay.String = ''; PIN = ''
+                end,
                 2
             )
         end
@@ -873,15 +886,16 @@ if Controls then
             local p = Controls.pinSuccess
             p.Boolean = true; p.Color = "green"
             Timer.CallAfter(
-                function() p.Boolean = false; p.Color = "#FF7C0000" end,
+                function()
+                    p.Boolean = false; p.Color = "#FF7C0000"
+                end,
                 1
             )
         end
     
-        local pseudo_ctl = {Boolean = true}
+        local pseudo_ctl = { Boolean = true }
     
         if ctl.Boolean then
-    
             for name, code in pairs(CODES) do
                 if name == "Admin" and code.enabled then
                     if PIN == code.pin then
@@ -894,7 +908,7 @@ if Controls then
                 else
                     if PIN == code.pin and code.enabled then
                         Log.Message(string.format("User: %d Logged In", name))
-                        set_page( Controls.pinLandingPage[name].String)
+                        set_page(Controls.pinLandingPage[name].String)
                         clear_pin(pseudo_ctl)
                         correct()
                         return
@@ -943,12 +957,12 @@ if Controls then
     ----------------------------------------------------------------
     -- Panel Change
     ----------------------------------------------------------------
-    Controls.panelSelection.EventHandler = function( ctl )
+    Controls.panelSelection.EventHandler = function(ctl)
       if isDynamic(ctl.String) then
-          Controls.uciSelection.Choices = Ucis(ctl.String).Choices
-          Controls.uciSelection.String = Ucis(ctl.String).String
-      else 
-          Controls.uciSelection.String = "UCI is Static."
+        Controls.uciSelection.Choices = Ucis(ctl.String).Choices
+        Controls.uciSelection.String = Ucis(ctl.String).String
+      else
+        Controls.uciSelection.String = "UCI is Static."
       end
     
       updatePageLabels()
@@ -959,7 +973,7 @@ if Controls then
     ----------------------------------------------------------------
     -- UCI Change
     ----------------------------------------------------------------
-    Controls.uciSelection.EventHandler = function( ctl )
+    Controls.uciSelection.EventHandler = function(ctl)
       Ucis(Controls.panelSelection.String).String = ctl.String
       updatePageLabels()
     end
@@ -967,8 +981,9 @@ if Controls then
     ----------------------------------------------------------------
     -- Page Change Using Dropdown
     ----------------------------------------------------------------
-    Controls.pageSelection.EventHandler = function( ctl )
+    Controls.pageSelection.EventHandler = function(ctl)
       Pages(Controls.panelSelection.String).String = ctl.String
+      update_page_buttons(ctl.String)
     end
     
     ----------------------------------------------------------------
@@ -976,7 +991,7 @@ if Controls then
     ----------------------------------------------------------------
     for index, ctl in pairs(Controls.pageButton) do
       ctl.EventHandler = function()
-          set_page(Controls.pageLabel[index].String)
+        set_page(Controls.pageLabel[index].String)
       end
     end
     
@@ -985,7 +1000,7 @@ if Controls then
     ----------------------------------------------------------------
     for index, ctl in pairs(Controls.numPad) do
       ctl.EventHandler = function()
-          output_pin( ctl, index )  --Show the pin number using *
+        output_pin(ctl, index)      --Show the pin number using *
       end
     end
     
@@ -997,11 +1012,11 @@ if Controls then
     ----------------------------------------------------------------
     -- Update User Pins
     ----------------------------------------------------------------
-    for index=1, Properties["Defined Pass Codes"].Value do
-      for _, ctl in pairs{Controls.pinCode, Controls.pinEnable, Controls.pinLandingPage} do
-          ctl[index].EventHandler = function()
-              update_pins(index)
-          end
+    for index = 1, Properties["Defined Pass Codes"].Value do
+      for _, ctl in pairs { Controls.pinCode, Controls.pinEnable, Controls.pinLandingPage } do
+        ctl[index].EventHandler = function()
+          update_pins(index)
+        end
       end
     end
     
@@ -1009,33 +1024,44 @@ if Controls then
     -- Add exclusivity
     --
     MakeExclusive(Controls.pageButton)
-    
   
   --------------------------------------------------------------------
   -- INIT
   --------------------------------------------------------------------
   -- Set the Panel List
-  Controls.panelSelection.Choices = panel_list()
   
-  -- Set a default Panel Selection
-  if Controls.panelSelection.String == '' then Controls.panelSelection.String = Controls.panelSelection.Choices[1] end
+  local function init()
+    Controls.panelSelection.Choices = panel_list()
   
-  -- Set Page List
-  Controls.pageSelection.Choices = Pages(Controls.panelSelection.String).Choices
+    if #panel_list() == 0 then
+      Controls.panelStatus.String =
+      "Fault No Panels Found!\nDebug for more info"
+      error(
+        "There must be at least be 1 control device in your design with the Script Access propety enabled.", 1)
+    end
   
-  -- Set Current Page
-  Controls.pageSelection.String = Pages(Controls.panelSelection.String).String
+    -- Set a default Panel Selection
+    if Controls.panelSelection.String == '' then Controls.panelSelection.String = Controls.panelSelection.Choices[1] end
   
-  -- Set Page labels for Page buttons and pin labels
-  updatePageLabels()
+    -- Set Page List
+    Controls.pageSelection.Choices = Pages(Controls.panelSelection.String).Choices
   
-  if isDynamic(Controls.panelSelection.String) then
+    -- Set Current Page
+    Controls.pageSelection.String = Pages(Controls.panelSelection.String).String
+  
+    -- Set Page labels for Page buttons and pin labels
+    updatePageLabels()
+  
+    if isDynamic(Controls.panelSelection.String) then
       Controls.uciSelection.Choices = Ucis(Controls.panelSelection.String).Choices
       Controls.uciSelection.String = Ucis(Controls.panelSelection.String).String
-  else
+    else
       Controls.uciSelection.String = "UCI is Static."
+    end
+  
+  
+    updateStatusDevice()
   end
   
-  
-  updateStatusDevice()
+  init()
 end
