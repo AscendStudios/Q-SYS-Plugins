@@ -44,7 +44,7 @@ end
 ----------------------------------------------------------------
 for index, ctl in pairs(Controls.numPad) do
   ctl.EventHandler = function()
-    output_pin(ctl, index)      --Show the pin number using *
+    output_pin(ctl, index)  --Show the pin number using *
   end
 end
 
