@@ -56,7 +56,8 @@ local function init()
     Controls.panelStatus.String =
     "Fault No Panels Found!\nDebug for more info"
     error(
-      "There must be at least be 1 control device in your design with the Script Access propety enabled.", 1)
+      "There must be at least be 1 control device in your design with the Script Access property enabled or if you're using LTS or earlier, make sure that you name the device's status block.",
+      1)
   end
 
   -- Set a default Panel Selection
