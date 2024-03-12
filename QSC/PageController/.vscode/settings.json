@@ -25,9 +25,24 @@
     "pins",
     "components",
     "wiring",
-    "fonts"
+    "fonts",
+    "colors",
+    "Properties",
+    "Log",
+    "panel_list",
+    "inventory",
+    "CODES",
+    "Pages",
+    "updatePageLabels",
+    "isDynamic",
+    "Ucis",
+    "updateStatusDevice",
+    "update_page_buttons",
+    "set_page"
   ],
   "Lua.diagnostics.disable": [
-    "undefined-field"
+    "undefined-field",
+    "duplicate-set-field",
+    "undefined-global"
   ]
 }

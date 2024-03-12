@@ -38,7 +38,13 @@ for index, ctl in pairs(Controls.pageButton) do
     set_page(Controls.pageLabel[index].String)
   end
 end
-
+----------------------------------------------------------------
+-- Pin Number Controls
+---------------------------------------------------------------
+for index, ctl in pairs(Controls.filterEnable) do
+  ctl.EventHandler = updatePageLabels
+  Controls.filterList[index].EventHandler = updatePageLabels
+end
 ----------------------------------------------------------------
 -- Pin Number Controls
 ----------------------------------------------------------------

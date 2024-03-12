@@ -12,13 +12,13 @@
 -- Navigation
 --------------------------------------------------------
 
-for _, name in ipairs{"panelSelection", "pageSelection", "uciSelection"} do
-  table.insert(ctrls, {
-      Name = name,
-      ControlType = "Text",
-      UserPin = true,
-      PinStyle = "Both",
-  })
+for _, name in ipairs { "panelSelection", "pageSelection", "uciSelection" } do
+    table.insert(ctrls, {
+        Name = name,
+        ControlType = "Text",
+        UserPin = true,
+        PinStyle = "Both",
+    })
 end
 
 
@@ -74,7 +74,7 @@ table.insert(ctrls, {
 })
 
 
-for _, name in ipairs({"clear", "back", "enter"}) do
+for _, name in ipairs({ "clear", "back", "enter" }) do
     table.insert(ctrls, {
         Name = name,
         ControlType = "Button",
@@ -88,7 +88,7 @@ table.insert(ctrls, {
 })
 
 table.insert(ctrls, {
-    Name="panelStatus",
+    Name = "panelStatus",
     ControlType = "Indicator",
     IndicatorType = "Status",
     PinStyle = "Output",
@@ -96,9 +96,27 @@ table.insert(ctrls, {
 })
 
 table.insert(ctrls, {
-    Name="pinSuccess",
+    Name = "pinSuccess",
     ControlType = "Indicator",
     IndicatorType = "Led",
     PinStyle = "Output",
     UserPin = true
+})
+
+
+-------
+-- Filter Controls
+-------
+
+table.insert(ctrls, {
+    Name = "filterList",
+    ControlType = "Text",
+    Count = props["Private Pages"].Value,
+})
+
+table.insert(ctrls, {
+    Name = "filterEnable",
+    ControlType = "Button",
+    ButtonType = "Toggle",
+    Count = props["Private Pages"].Value
 })
