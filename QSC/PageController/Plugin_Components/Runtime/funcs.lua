@@ -190,7 +190,7 @@ local function updatePageLabels()
     Controls.pageSelection.String = pages.String
     -- Update Page Button Labels
     for _, label in pairs(Controls.pageLabel) do
-        label.Choices = filtered_choices
+        label.Choices = pages.Choices
     end
     --Pins
     get_landing_pages()

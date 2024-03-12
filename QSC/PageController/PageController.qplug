@@ -8,7 +8,7 @@
 PluginInfo = {
   Name = "Page Navigation",
   Version = "1.2",
-  BuildVersion = "1.2.0.0",
+  BuildVersion = "1.2.1.0",
   Id = "PageNavigation",
   Author = "Casey Compton",
   Description = "Plugin for full page navigation within Q-SYS control devices and UCI Viewers"
@@ -1033,7 +1033,7 @@ if Controls then
         Controls.pageSelection.String = pages.String
         -- Update Page Button Labels
         for _, label in pairs(Controls.pageLabel) do
-            label.Choices = filtered_choices
+            label.Choices = pages.Choices
         end
         --Pins
         get_landing_pages()
