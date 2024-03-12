@@ -159,17 +159,38 @@ local function get_landing_pages()
     end
 end
 
+local function get_filter_labels()
+    local pages = Pages(Controls.panelSelection.String).Choices
+    for _, ctl in pairs(Controls.filterList) do
+        ctl.Choices = pages
+    end
+end
+
 ---------------------------------------------------------------------------
 -- Update Pages and Labels
 ---------------------------------------------------------------------------
+local function filter_page_labels(choices)
+    local filtered_list = {}
+    for index, name in pairs(Controls.filterList) do
+        local found, idx = table.contains(choices, name.String)
+        if found and Controls.filterEnable[index].Boolean then
+            table.remove(choices, idx)
+        end
+    end
+    return choices
+end
 
 local function updatePageLabels()
     local pages = Pages(Controls.panelSelection.String)
+    local filtered_choices = filter_page_labels(pages.Choices)
+    -- Create the lables for the filters.
+    get_filter_labels()
     --Panels
-    Controls.pageSelection.Choices = pages.Choices
+    Controls.pageSelection.Choices = filtered_choices
     Controls.pageSelection.String = pages.String
+    -- Update Page Button Labels
     for _, label in pairs(Controls.pageLabel) do
-        label.Choices = pages.Choices
+        label.Choices = filtered_choices
     end
     --Pins
     get_landing_pages()
