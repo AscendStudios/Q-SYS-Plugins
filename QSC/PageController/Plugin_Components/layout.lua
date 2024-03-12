@@ -30,7 +30,7 @@ local row = 1
 local col = 1
 
 local function full_width()
-    if props["Filtered Pages"].Value > 0 then return w * 2 + tol end
+    if props["Private Pages"].Value > 0 then return w * 2 + tol end
     return w
 end
 
@@ -115,11 +115,11 @@ if CurrentPage == "Control" then
         }
     end
     -- Filter List --
-    if props["Filtered Pages"].Value > 0 then
+    if props["Private Pages"].Value > 0 then
         table.insert(graphics,
                      {
                          Type = "Header",
-                         Text = "Filter List",
+                         Text = "Private Pages",
                          Position = { second_column_pos(), h * 2 + tol + tol },
                          Size = { w, btn_h },
                          FontSize = fonts.small
@@ -142,7 +142,7 @@ if CurrentPage == "Control" then
     }
 
     -- Each Button and Label layout
-    for index = 1, props["Filtered Pages"].Value do
+    for index = 1, props["Private Pages"].Value do
         layout["filterEnable " .. index] = {
             PrettyName = "Enable Filter~" .. index,
             Size = { btn_w / 2, btn_h },

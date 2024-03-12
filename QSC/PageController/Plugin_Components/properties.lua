@@ -13,7 +13,7 @@ local props = {
     Value = 3,
   },
   {
-    Name = "Filtered Pages",
+    Name = "Private Pages",
     Type = "integer",
     Min = 0,
     Max = 100,

@@ -111,12 +111,12 @@ table.insert(ctrls, {
 table.insert(ctrls, {
     Name = "filterList",
     ControlType = "Text",
-    Count = props["Filtered Pages"].Value,
+    Count = props["Private Pages"].Value,
 })
 
 table.insert(ctrls, {
     Name = "filterEnable",
     ControlType = "Button",
     ButtonType = "Toggle",
-    Count = props["Filtered Pages"].Value
+    Count = props["Private Pages"].Value
 })
