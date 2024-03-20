@@ -48,7 +48,7 @@ end
 -- INIT
 --------------------------------------------------------------------
 -- Set the Panel List
-
+local count = 0
 local function init()
   Controls.panelSelection.Choices = panel_list()
 
@@ -63,24 +63,43 @@ local function init()
   -- Set a default Panel Selection
   if Controls.panelSelection.String == '' then Controls.panelSelection.String = Controls.panelSelection.Choices[1] end
 
-  -- Set Page List
-  Controls.pageSelection.Choices = Pages(Controls.panelSelection.String).Choices
 
-  -- Set Current Page
-  Controls.pageSelection.String = Pages(Controls.panelSelection.String).String
+  local ok, err = pcall(function()
+    -- Set Page List
+    Controls.pageSelection.Choices = Pages(Controls.panelSelection.String).Choices
+    -- Set Current Page
+    Controls.pageSelection.String = Pages(Controls.panelSelection.String).String
+    -- Set UCI Choices
+    if isDynamic(Controls.panelSelection.String) then
+      Controls.uciSelection.Choices = Ucis(Controls.panelSelection.String).Choices
+      Controls.uciSelection.String = Ucis(Controls.panelSelection.String).String
+    else
+      Controls.uciSelection.String = "UCI is Static."
+    end
+  end)
+
+  -- Set Status String if there is an error.
+  if not ok then
+    Controls.panelStatus.String = string.format("Fault: %s", err)
+    Controls.panelSelection.String = ''
+    if count < 3 then
+      count = count + 1
+      print(string.format("Retries: %d", count))
+      init()
+    else
+      Controls.panelStatus.String = "Fault: Cannot Resolve!\n See Debug for more info"
+      error(string.format("Cannot resolve error! %s", err))
+    end
+  end
 
   -- Set Page labels for Page buttons and pin labels
   updatePageLabels()
-
-  if isDynamic(Controls.panelSelection.String) then
-    Controls.uciSelection.Choices = Ucis(Controls.panelSelection.String).Choices
-    Controls.uciSelection.String = Ucis(Controls.panelSelection.String).String
+  -- Link the status to the panel
+  if count > 0 then
+    Controls.panelStatus.String = "Compromised: Panel name has changed."
   else
-    Controls.uciSelection.String = "UCI is Static."
+    updateStatusDevice()
   end
-
-
-  updateStatusDevice()
 end
 
 init()
